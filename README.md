@@ -1,3 +1,13 @@
+## Umbra.MarePlayerMarker
+
+CN-7.1
+手动下载，解压到任意位置，在Umbra-插件里添加路径
+
+## Credits
+
+[Umbra.SamplePlugin](https://github.com/una-xiv/Umbra.SamplePlugin)
+[Umbra.CounterSpyPlugin](https://github.com/una-xiv/Umbra.CounterSpyPlugin)
+
 # Umbra Plugin Development
 
 Umbra supports custom plugins to extend its functionality and provide additional toolbar widgets and world marker types.

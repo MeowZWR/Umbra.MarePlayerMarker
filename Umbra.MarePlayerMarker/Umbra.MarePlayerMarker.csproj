@@ -2,11 +2,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
+        <Configurations>Release;Debug1</Configurations>
+    </PropertyGroup>
+	<PropertyGroup>
+<!--        <UmbraLibPath>Z:\FFXIV-plugins\una-xiv-plugins\Umbra\out\Release\</UmbraLibPath>-->
     </PropertyGroup>
     <PropertyGroup>
-        <!-- Replace this with Umbra's directory is you have a local dev version installed. Mind the trailing backlash. -->
-        <!-- If you have Umbra installed through Dalamud, you can leave this as-is. -->
-        <!-- Credits to Lorosia for the dynamic Umbra folder finding. -->
         <UmbraLibPath>$([System.IO.Directory]::GetDirectories($(appdata)\XIVLauncher\installedPlugins\Umbra\)[0])\</UmbraLibPath>
     </PropertyGroup>
 
@@ -22,12 +23,12 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <Authors>Your Name</Authors>
-        <Company>Sample Company</Company>
-        <Version>1.0.0.0</Version>
-        <Description>A description</Description>
+        <Authors>Una</Authors>
+        <Company>Una XIV</Company>
+        <Version>1.2.1</Version>
+        <Description>A counter spy plugin.</Description>
         <Copyright>(C)2024</Copyright>
-        <PackageProjectUrl>https://github.com/una-xiv/umbra</PackageProjectUrl>
+        <PackageProjectUrl>https://github.com/una-xiv/Umbra.CounterSpyPlugin</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <IsPackable>false</IsPackable>
     </PropertyGroup>

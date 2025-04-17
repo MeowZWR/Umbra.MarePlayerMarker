@@ -6,6 +6,7 @@ CN-7.1
 ## Credits
 
 [Umbra.SamplePlugin](https://github.com/una-xiv/Umbra.SamplePlugin)
+
 [Umbra.CounterSpyPlugin](https://github.com/una-xiv/Umbra.CounterSpyPlugin)
 
 # Umbra Plugin Development

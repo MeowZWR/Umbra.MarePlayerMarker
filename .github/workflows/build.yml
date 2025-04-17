@@ -4,7 +4,7 @@ on:
     tags: ["*"]
 
 env:
-  SOLUTION_NAME: Umbra.SamplePlugin
+  SOLUTION_NAME: Umbra.MarePlayerMarker
   RELEASE_DIR: out/Release
 
 jobs:

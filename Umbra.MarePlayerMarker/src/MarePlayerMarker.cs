@@ -60,7 +60,7 @@ internal sealed class MarePlayerMarker(
                 "IconId",
                 "同步玩家图标 ID",
                 "用于世界标记的图标 ID。使用值0可禁用图标。在聊天中输入\"/xldata icons\"以访问图标浏览器。",
-                60401
+                63936
             ),
             new IntegerMarkerConfigVariable(
                 "MarkerHeight",

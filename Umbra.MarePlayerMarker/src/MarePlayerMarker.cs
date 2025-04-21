@@ -49,17 +49,39 @@ internal sealed class MarePlayerMarker(
             ),
             new SelectMarkerConfigVariable(
                 "VfxId",
-                "效果",
-                "显示在同步玩家身上的视觉效果。",
+                "特效（开着卸载插件可能炸游戏）",
+                "显示在同步玩家身上的视觉效果。（非循环特效会炸游戏，虽然我挑选过了，但说不定验证漏了呢）",
                 "无",
                 new() {
                     { "", "无" },
-                    { "vfx/common/eff/cmrz_castx1c.avfx", "光" },
-                    { "vfx/common/eff/levitate0f.avfx", "悬浮" },
-                    { "vfx/common/eff/m0328sp10st0f.avfx", "旋转球" },
-                    { "vfx/common/eff/dkst_over_p0f.avfx", "蓝色光环" },
-                    { "vfx/common/eff/st_akama_kega0j.avfx", "红色漩涡" },
-                    { "vfx/common/eff/dk10ht_cha0h.avfx", "爱慕者" }
+                    // 基础效果
+                    { "vfx/common/eff/cmrz_castx1c.avfx", "【基础】光" },
+                    { "vfx/common/eff/levitate0f.avfx", "【基础】悬浮" },
+                    { "vfx/common/eff/dk10ht_cha0h.avfx", "【环绕】爱慕者" },
+                    
+                    // 环绕效果
+                    { "vfx/common/eff/dkst_evt01f.avfx", "【环绕】环绕标记1" },
+                    { "vfx/common/eff/x6fa_stlp01_c0a1.avfx", "【环绕】环绕标记2" },
+                    { "vfx/common/eff/x6fa_stlp02_c0a1.avfx", "【环绕】环绕标记3" },
+                    { "vfx/common/eff/m7105_stlp02_c0k1.avfx", "【环绕】大型环绕" },
+                    { "vfx/common/eff/m0328sp10st0f.avfx", "【环绕】旋转球" },
+                    
+                    // 月读效果
+                    { "vfx/common/eff/m0487_w3_mark0h.avfx", "【月读】白3层" },
+                    { "vfx/common/eff/m0487_w6_mark0h.avfx", "【月读】白6层" },
+                    { "vfx/common/eff/m0487_w10_mark0h.avfx", "【月读】白10层" },
+                    { "vfx/common/eff/m0487_b3_mark0h.avfx", "【月读】黑3层" },
+                    { "vfx/common/eff/m0487_b6_mark0h.avfx", "【月读】黑6层" },
+                    { "vfx/common/eff/m0487_b10_mark0h.avfx", "【月读】黑10层" },
+                    
+                    // 特殊效果
+                    { "vfx/common/eff/z6r1_b3_stlp05_c0t1.avfx", "【特殊】棱形牢笼" },
+                    { "vfx/common/eff/dk10ht_sdb0c.avfx", "【特殊】地下冒出很多手" },
+                    { "vfx/common/eff/dkst_over_p0f.avfx", "【特殊】蓝色光晕" },
+                    { "vfx/common/eff/st_akama_kega0j.avfx", "【特殊】红色漩涡" },
+
+                    // 标记
+                    { "vfx/common/eff/n4g8_stlp_shlight1v.avfx", "【标记】圣光轰炸" },
                 }
             ),
             new IntegerMarkerConfigVariable(

@@ -41,6 +41,12 @@ internal sealed class MarePlayerMarker(
                 "在世界标记上显示玩家的游戏UID。",
                 false
             ),
+            new BooleanMarkerConfigVariable(
+                "UseUnicodeIcon",
+                "使用Unicode图标",
+                "使用Unicode字符\uE044作为图标，而不是使用图标ID。",
+                true
+            ),
             new SelectMarkerConfigVariable(
                 "VfxId",
                 "效果",
@@ -131,6 +137,7 @@ internal sealed class MarePlayerMarker(
             var     fadeDistance     = GetConfigValue<int>("FadeDistance");
             var     fadeAttenuation  = GetConfigValue<int>("FadeAttenuation");
             var     maxVisibleDistance = GetConfigValue<int>("MaxVisibleDistance");
+            var     useUnicodeIcon   = GetConfigValue<bool>("UseUnicodeIcon");
             Vector2 fadeDist         = new(fadeDistance, fadeDistance + Math.Max(1, fadeAttenuation));
 
             // 按Y坐标排序，确保标记从上到下排列
@@ -149,7 +156,7 @@ internal sealed class MarePlayerMarker(
 
                 if (nearbyMarkers.Count > 0) {
                     // 如果有其他标记，将新标记放在最高的标记上方
-                    basePosition = basePosition with { Y = nearbyMarkers.Last().Y + 2.0f };
+                    basePosition = basePosition with { Y = nearbyMarkers.Last().Y + 1.0f };
                 }
 
                 markerPositions[obj.GameObjectId] = basePosition;
@@ -178,11 +185,15 @@ internal sealed class MarePlayerMarker(
                     label = _playerUids[obj.GameObjectId];
                 }
 
+                if (useUnicodeIcon) {
+                    label = string.IsNullOrEmpty(label) ? "\uE044" : $"\uE044 {label}";
+                }
+
                 SetMarker(
                     new() {
                         Key           = key,
                         MapId         = zoneId,
-                        IconId        = iconId,
+                        IconId        = useUnicodeIcon ? 0u : iconId,
                         Position      = markerPositions[obj.GameObjectId],
                         Label         = label,
                         FadeDistance  = fadeDist,

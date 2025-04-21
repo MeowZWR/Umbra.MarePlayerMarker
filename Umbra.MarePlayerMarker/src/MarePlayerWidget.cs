@@ -38,22 +38,34 @@ public class MarePlayerWidget(
     {
         List<IGameObject> playerList = Repository.GetSyncedPlayers();
         bool              isEmpty    = playerList.Count == 0;
+        bool              useUnicode = GetConfigValue<bool>("UseUnicodeIcon");
 
-        uint iconId = playerList.Count > 0
-            ? (uint)GetConfigValue<int>("IconId")
-            : 0u;
-
-        SetIcon(iconId);
+        if (useUnicode) {
+            SetIcon(null);
+        } else {
+            uint iconId = playerList.Count > 0
+                ? (uint)GetConfigValue<int>("IconId")
+                : 0u;
+            SetIcon(iconId);
+        }
 
         Node.Style.IsVisible = !(isEmpty && GetConfigValue<bool>("HideIfEmpty"));
 
         if (playerList.Count == 0) {
-            SetLabel("没有同步玩家");
-            SetIcon(null);
+            if (useUnicode) {
+                SetLabel("\uE044 0");
+            } else {
+                SetLabel(" 0");
+                SetIcon(null);
+            }
             return;
         }
 
-        SetLabel($"同步玩家：{playerList.Count}");
+        if (useUnicode) {
+            SetLabel($"\uE044 {playerList.Count}");
+        } else {
+            SetLabel($" {playerList.Count}");
+        }
 
         UpdateMenuItems(playerList, "SyncedPlayers");
 
@@ -102,10 +114,16 @@ public class MarePlayerWidget(
                 "如果当前没有通过Mare同步的玩家，隐藏组件。",
                 true
             ),
+            new BooleanWidgetConfigVariable(
+                "UseUnicodeIcon",
+                "使用Unicode图标",
+                "使用Unicode字符作为图标，而不是使用图标ID。",
+                true
+            ),
             new IntegerWidgetConfigVariable(
                 "IconId",
                 "同步玩家图标ID",
-                "用于组件的图标ID。使用值0可禁用图标。输入\"/xldata icons\"到聊天框中以访问图标浏览器。",
+                "用于组件的图标ID。使用值0可禁用图标。输入\"/xldata icons\"到聊天框中以访问图标浏览器。仅在未使用Unicode图标时有效。",
                 63936
             ),
             ..DefaultToolbarWidgetConfigVariables,

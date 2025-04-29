@@ -20,10 +20,28 @@ internal sealed class MarePlayerMarker(
 ) : WorldMarkerFactory
 {
     private readonly Dictionary<ulong, string> _playerUids = [];
+    private readonly Dictionary<string, string> _anonymizedNames = [];
+    private readonly Random _random = new();
 
     public override string Id          => "Umbra_MarePlayerMarker";
     public override string Name        => "Mare同步玩家标记";
     public override string Description => "显示通过Mare与你同步的玩家的世界标记。";
+
+    private string AnonymizeName(string name)
+    {
+        if (string.IsNullOrEmpty(name) || name.Length <= 1)
+            return name;
+        
+        if (_anonymizedNames.TryGetValue(name, out var cachedName))
+            return cachedName;
+        
+        int index = _random.Next(name.Length);
+        string anonymizedName = string.Concat(name.AsSpan(0, index), "*", name.AsSpan(index + 1));
+        
+        _anonymizedNames[name] = anonymizedName;
+        
+        return anonymizedName;
+    }
 
     public override List<IMarkerConfigVariable> GetConfigVariables()
     {
@@ -34,6 +52,12 @@ internal sealed class MarePlayerMarker(
                 "显示名称",
                 "在世界标记上显示同步玩家的名字。",
                 true
+            ),
+            new BooleanMarkerConfigVariable(
+                "AnonymizeName",
+                "匿名",
+                "为名称中的随机一个字打码。",
+                false
             ),
             new BooleanMarkerConfigVariable(
                 "ShowUid",
@@ -57,7 +81,7 @@ internal sealed class MarePlayerMarker(
                     // 基础效果
                     { "vfx/common/eff/cmrz_castx1c.avfx", "【基础】光" },
                     { "vfx/common/eff/levitate0f.avfx", "【基础】悬浮" },
-                    { "vfx/common/eff/dk10ht_cha0h.avfx", "【环绕】爱慕者" },
+                    { "vfx/common/eff/dk10ht_cha0h.avfx", "【基础】爱慕者" },
                     
                     // 环绕效果
                     { "vfx/common/eff/dkst_evt01f.avfx", "【环绕】环绕标记1" },
@@ -154,6 +178,7 @@ internal sealed class MarePlayerMarker(
             var     iconId           = (uint)GetConfigValue<int>("IconId");
             var     markerHeight     = GetConfigValue<int>("MarkerHeight");
             var     showName         = GetConfigValue<bool>("ShowName");
+            var     anonymizeName    = GetConfigValue<bool>("AnonymizeName");
             var     showUid          = GetConfigValue<bool>("ShowUid");
             var     showOnCompass    = GetConfigValue<bool>("ShowOnCompass");
             var     fadeDistance     = GetConfigValue<int>("FadeDistance");
@@ -207,6 +232,21 @@ internal sealed class MarePlayerMarker(
                     label = _playerUids[obj.GameObjectId];
                 }
 
+                if (showName && anonymizeName && !string.IsNullOrEmpty(label)) {
+                    if (showUid) {
+                        int bracketIndex = label.IndexOf(" (");
+                        if (bracketIndex > 0) {
+                            string name = label[..bracketIndex];
+                            string uid = label[bracketIndex..];
+                            label = AnonymizeName(name) + uid;
+                        } else {
+                            label = AnonymizeName(label);
+                        }
+                    } else {
+                        label = AnonymizeName(label);
+                    }
+                }
+
                 if (useUnicodeIcon) {
                     label = string.IsNullOrEmpty(label) ? "\uE044" : $"\uE044 {label}";
                 }
@@ -225,6 +265,33 @@ internal sealed class MarePlayerMarker(
             }
 
             RemoveMarkersExcept(usedIds);
+            
+            if (!anonymizeName)
+            {
+                _anonymizedNames.Clear();
+            }
+            else if (_anonymizedNames.Count > 0)
+            {
+                HashSet<string> activeNames = [];
+                foreach (var obj in targets)
+                {
+                    activeNames.Add(obj.Name.TextValue);
+                    
+                    if (showName && showUid)
+                    {
+                        activeNames.Add($"{obj.Name.TextValue} ({_playerUids[obj.GameObjectId]})");
+                    }
+                }
+                
+                List<string> namesToRemove = _anonymizedNames.Keys
+                    .Where(name => !activeNames.Contains(name))
+                    .ToList();
+                
+                foreach (var name in namesToRemove)
+                {
+                    _anonymizedNames.Remove(name);
+                }
+            }
         }
         catch (Exception ex)
         {

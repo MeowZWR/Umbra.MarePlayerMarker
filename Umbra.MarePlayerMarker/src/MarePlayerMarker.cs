@@ -77,6 +77,12 @@ internal sealed class MarePlayerMarker(
                 "使用Unicode字符\uE044作为图标，而不是使用图标ID。",
                 true
             ),
+            new BooleanMarkerConfigVariable(
+                "ShowCompassText",
+                "在罗盘上显示文本",
+                "在罗盘上显示Unicode图标和玩家名称，而不仅仅是图标。",
+                true
+            ),
             new SelectMarkerConfigVariable(
                 "VfxId",
                 "特效（开着卸载插件可能炸游戏）",
@@ -191,6 +197,7 @@ internal sealed class MarePlayerMarker(
             var     fadeAttenuation  = GetConfigValue<int>("FadeAttenuation");
             var     maxVisibleDistance = GetConfigValue<int>("MaxVisibleDistance");
             var     useUnicodeIcon   = GetConfigValue<bool>("UseUnicodeIcon");
+            var     showCompassText  = GetConfigValue<bool>("ShowCompassText");
             Vector2 fadeDist         = new(fadeDistance, fadeDistance + Math.Max(1, fadeAttenuation));
 
             // 按Y坐标排序，确保标记从上到下排列
@@ -266,6 +273,7 @@ internal sealed class MarePlayerMarker(
                         Label         = label,
                         FadeDistance  = fadeDist,
                         ShowOnCompass = showOnCompass,
+                        CompassText   = showOnCompass && showCompassText ? label : null,
                     }
                 );
             }

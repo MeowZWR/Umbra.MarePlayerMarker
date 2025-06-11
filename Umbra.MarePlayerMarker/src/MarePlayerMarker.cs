@@ -202,7 +202,7 @@ internal sealed class MarePlayerMarker(
                 var basePosition = obj.Position with { Y = obj.Position.Y + markerHeight };
                 
                 // 检查是否有其他标记在附近
-                var nearbyMarkers = markerPositions.Values
+                List<Vector3> nearbyMarkers = markerPositions.Values
                     .Where(p => Vector3.Distance(p, basePosition) < 2.0f)
                     .OrderBy(p => p.Y)
                     .ToList();

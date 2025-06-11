@@ -21,7 +21,6 @@ internal sealed class MarePlayerMarker(
 {
     private readonly Dictionary<ulong, string> _playerUids = [];
     private readonly Dictionary<string, string> _anonymizedNames = [];
-    private readonly Random _random = new();
 
     public override string Id          => "Umbra_MarePlayerMarker";
     public override string Name        => "Mare同步玩家标记";
@@ -29,17 +28,24 @@ internal sealed class MarePlayerMarker(
 
     private string AnonymizeName(string name)
     {
-        if (string.IsNullOrEmpty(name) || name.Length <= 1)
+        if (string.IsNullOrEmpty(name))
             return name;
         
         if (_anonymizedNames.TryGetValue(name, out var cachedName))
             return cachedName;
         
-        int index = _random.Next(name.Length);
-        string anonymizedName = string.Concat(name.AsSpan(0, index), "*", name.AsSpan(index + 1));
+        string anonymizedName;
+        if (name.Contains(' ')) // 国际服角色名逻辑，有空格
+        {
+            var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            anonymizedName = string.Join(" ", parts.Select(p => p.Length > 0 ? $"{p[0]}." : ""));
+        }
+        else // 国服角色名逻辑，无空格
+        {
+            anonymizedName = name.Length > 0 ? $"{name[0]}." : name;
+        }
         
         _anonymizedNames[name] = anonymizedName;
-        
         return anonymizedName;
     }
 

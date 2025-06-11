@@ -1,6 +1,7 @@
 ## Umbra.MarePlayerMarker
 
-CN-7.1
+CN-7.1，但7.2试了也能用
+
 手动下载，解压到任意位置，在Umbra-插件里添加路径
 
 ## Credits

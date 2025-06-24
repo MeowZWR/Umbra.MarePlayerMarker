@@ -11,7 +11,6 @@ namespace Umbra.MarePlayerMarker;
 [Service]
 internal sealed class MarePlayerRepository(
     IClientState clientState,
-    IObjectTable objectTable,
     IPlayer      player,
     MareIpcService mareIpc
 ) : IDisposable

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Dalamud.NET.Sdk/12.0.2">
     <PropertyGroup>
         <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
         <Configurations>Release;Debug1</Configurations>
@@ -12,7 +12,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
@@ -20,15 +20,17 @@
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <OutputPath>..\out\$(Configuration)\</OutputPath>
+        <Use_DalamudPackager>false</Use_DalamudPackager>
     </PropertyGroup>
 
     <PropertyGroup>
         <Authors>Una</Authors>
-        <Company>Una XIV</Company>
-        <Version>1.2.1</Version>
-        <Description>A counter spy plugin.</Description>
-        <Copyright>(C)2024</Copyright>
-        <PackageProjectUrl>https://github.com/una-xiv/Umbra.CounterSpyPlugin</PackageProjectUrl>
+        <Company>Una</Company>
+        <Version>1.0.3</Version>
+        <ProductName>CounterSpy Plugin</ProductName>
+        <Description>Shows who/what is targeting you.</Description>
+        <Copyright>(C)2025</Copyright>
+        <PackageProjectUrl>https://github.com/una-xiv/umbra</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <IsPackable>false</IsPackable>
     </PropertyGroup>

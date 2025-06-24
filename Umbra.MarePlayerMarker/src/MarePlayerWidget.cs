@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -18,96 +19,113 @@ public class MarePlayerWidget(
     WidgetInfo                  info,
     string?                     guid         = null,
     Dictionary<string, object>? configValues = null
-) : DefaultToolbarWidget(info, guid, configValues)
+) : StandardToolbarWidget(info, guid, configValues)
 {
     public override MenuPopup Popup { get; } = new();
 
-    private Dictionary<string, List<string>> _menuItems = [];
+    protected override StandardWidgetFeatures Features =>
+        StandardWidgetFeatures.Text |
+        StandardWidgetFeatures.Icon;
+
+    private readonly Dictionary<string, Dictionary<string, MenuPopup.Button>> _menuItems   = [];
+    private readonly MenuPopup.Group                                          _playerGroup = new("同步玩家");
 
     private MarePlayerRepository Repository    { get; } = Framework.Service<MarePlayerRepository>();
     private IPlayer              Player        { get; } = Framework.Service<IPlayer>();
     private ITargetManager       TargetManager { get; } = Framework.Service<ITargetManager>();
 
-    protected override void Initialize()
+    protected override void OnLoad()
     {
-        Popup.AddGroup("SyncedPlayers", "同步玩家");
-        _menuItems["SyncedPlayers"] = [];
+        Popup.Add(_playerGroup);
+        _menuItems["同步玩家"] = [];
     }
 
-    protected override void OnUpdate()
+    protected override void OnDraw()
     {
         List<IGameObject> playerList = Repository.GetSyncedPlayers();
         bool              isEmpty    = playerList.Count == 0;
         bool              useUnicode = GetConfigValue<bool>("UseUnicodeIcon");
 
-        if (useUnicode) {
-            SetIcon(null);
-        } else {
-            uint iconId = playerList.Count > 0
-                ? (uint)GetConfigValue<int>("IconId")
-                : 0u;
-            SetIcon(iconId);
-        }
+        var iconId = playerList.Count > 0
+            ? (uint)GetConfigValue<int>("IconId")
+            : 0u;
 
-        Node.Style.IsVisible = !(isEmpty && GetConfigValue<bool>("HideIfEmpty"));
+        SetGameIconId(iconId);
 
-        if (playerList.Count == 0) {
-            if (useUnicode) {
-                SetLabel("\uE044 0");
-            } else {
-                SetLabel(" 0");
-                SetIcon(null);
+        IsVisible = !(isEmpty && GetConfigValue<bool>("HideIfEmpty"));
+        if (!IsVisible) return;
+
+        if (playerList.Count == 0)
+        {
+            if (useUnicode)
+            {
+                SetText("\uE044 0");
+            }
+            else
+            {
+                SetText(" 0");
+                ClearIcon();
             }
             return;
         }
 
-        if (useUnicode) {
-            SetLabel($"\uE044 {playerList.Count}");
-        } else {
-            SetLabel($" {playerList.Count}");
+        if (useUnicode)
+        {
+            SetText($"\uE044 {playerList.Count}");
+        }
+        else
+        {
+            SetText($" {playerList.Count}");
         }
 
-        UpdateMenuItems(playerList, "SyncedPlayers");
-
-        base.OnUpdate();
+        UpdateMenuItems(playerList, _playerGroup);
     }
 
-    private void UpdateMenuItems(List<IGameObject> list, string group)
+    private void UpdateMenuItems(List<IGameObject> list, MenuPopup.Group group)
     {
-        foreach (var obj in list) {
+        if (!_menuItems.ContainsKey(group.Label!)) _menuItems[group.Label!] = [];
+
+        List<string> usedIds = [];
+
+        foreach (var obj in list)
+        {
             var   id   = $"obj_{obj.GameObjectId}";
             float d    = Vector3.Distance(Player.Position, obj.Position);
             var   dist = $"{d:N0} 米";
 
-            if (Popup.HasButton(id)) {
-                Popup.SetButtonAltLabel(id, dist);
-                Popup.SetButtonDisabled(id, d > 50);
-                continue;
+            usedIds.Add(id);
+
+            if (!_menuItems[group.Label!].ContainsKey(id))
+            {
+                _menuItems[group.Label!][id] = new MenuPopup.Button(obj.Name.TextValue)
+                {
+                    IsDisabled = d > 50,
+                    Icon       = null,
+                    AltText    = dist,
+                    SortIndex  = obj.ObjectIndex,
+                    OnClick    = () => TargetManager.Target = obj,
+                };
             }
 
-            _menuItems[group].Add(id);
-            Popup.AddButton(
-                id,
-                obj.Name.TextValue,
-                obj.ObjectIndex,
-                null,
-                dist,
-                groupId: group,
-                onClick: () => TargetManager.Target = obj
-            );
+            var button = _menuItems[group.Label!][id];
+            group.Add(button);
         }
 
-        foreach (string id in _menuItems[group].ToArray()) {
-            if (list.Find(obj => $"obj_{obj.GameObjectId}" == id) == null) {
-                _menuItems[group].Remove(id);
-                Popup.RemoveButton(id);
+        foreach (var (id, btn) in _menuItems[group.Label!].ToDictionary())
+        {
+            if (!usedIds.Contains(id))
+            {
+                group.Remove(btn);
+                _menuItems[group.Label!].Remove(id);
             }
         }
     }
 
     protected override IEnumerable<IWidgetConfigVariable> GetConfigVariables()
     {
-        return [
+        return
+        [
+            ..base.GetConfigVariables(),
             new BooleanWidgetConfigVariable(
                 "HideIfEmpty",
                 "如果没有同步玩家，则隐藏组件。",
@@ -126,8 +144,6 @@ public class MarePlayerWidget(
                 "用于组件的图标ID。使用值0可禁用图标。输入\"/xldata icons\"到聊天框中以访问图标浏览器。仅在未使用Unicode图标时有效。",
                 63936
             ),
-            ..DefaultToolbarWidgetConfigVariables,
-            ..SingleLabelTextOffsetVariables
         ];
     }
 } 

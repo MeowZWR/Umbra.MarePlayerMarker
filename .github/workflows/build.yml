@@ -1,7 +1,8 @@
 name: Publish
 on:
   push:
-    tags: ["*"]
+    tags: ["*-cn"]
+    branches: ["unicode-support"]
 
 env:
   SOLUTION_NAME: Umbra.MarePlayerMarker
@@ -38,8 +39,9 @@ jobs:
 
       - name: Build solution
         run: |
+          $ver = '${{ github.ref_name }}' -replace '-cn'
           dotnet restore -r win ${{ env.SOLUTION_NAME }}.sln
-          dotnet build --configuration Release
+          dotnet build --configuration Release --nologo -p:Version=$ver -p:FileVersion=$ver -p:AssemblyVersion=$ver
 
       - name: Create plugin archive
         run: Compress-Archive -Path ${{env.RELEASE_DIR}}* -DestinationPath ${{env.RELEASE_DIR}}/${{env.SOLUTION_NAME}}.zip

@@ -26,9 +26,9 @@
     <PropertyGroup>
         <Authors>Una</Authors>
         <Company>Una</Company>
-        <Version>1.0.3</Version>
+        <Version>1.0.5</Version>
         <ProductName>CounterSpy Plugin</ProductName>
-        <Description>Shows who/what is targeting you.</Description>
+        <Description>Adds world markers for players synced via Mare to easily find mod-sharing companions.</Description>
         <Copyright>(C)2025</Copyright>
         <PackageProjectUrl>https://github.com/una-xiv/umbra</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>

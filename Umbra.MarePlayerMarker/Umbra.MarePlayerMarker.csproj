@@ -24,10 +24,10 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <Authors>Una</Authors>
-        <Company>Una</Company>
+        <Authors>MeowZ</Authors>
+        <Company>MeowZ</Company>
         <Version>1.0.5</Version>
-        <ProductName>CounterSpy Plugin</ProductName>
+        <ProductName>Mare Player Marker</ProductName>
         <Description>Adds world markers for players synced via Mare to easily find mod-sharing companions.</Description>
         <Copyright>(C)2025</Copyright>
         <PackageProjectUrl>https://github.com/una-xiv/umbra</PackageProjectUrl>

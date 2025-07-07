@@ -57,17 +57,29 @@ internal unsafe class VfxManager : IDisposable
 
     public void Dispose()
     {
-        foreach (nint ptr in _vfxActors) {
-            ActorVfxRemoveHook?.Original(ptr, (char)0);
+        if (ActorVfxRemoveHook != null && !ActorVfxRemoveHook.IsDisposed)
+        {
+            foreach (nint ptr in _vfxActors) {
+                ActorVfxRemoveHook.Original(ptr, (char)0);
+            }
         }
 
-        ActorVfxCreateHook?.Dispose();
-        ActorVfxRemoveHook?.Dispose();
+        _vfxActors.Clear();
+
+        if (ActorVfxCreateHook != null && !ActorVfxCreateHook.IsDisposed)
+        {
+            ActorVfxCreateHook.Dispose();
+        }
+        
+        if (ActorVfxRemoveHook != null && !ActorVfxRemoveHook.IsDisposed)
+        {
+            ActorVfxRemoveHook.Dispose();
+        }
     }
 
     public IntPtr PlayVfx(string path, IGameObject obj)
     {
-        if (ActorVfxCreateHook == null) return 0;
+        if (ActorVfxCreateHook == null || ActorVfxCreateHook.IsDisposed) return 0;
 
         var go = GameObjectManager.Instance()->Objects.GetObjectByGameObjectId(obj.GameObjectId);
 
@@ -87,7 +99,7 @@ internal unsafe class VfxManager : IDisposable
 
     public void RemoveVfx(nint ptr)
     {
-        if (ActorVfxRemoveHook == null) return;
+        if (ActorVfxRemoveHook == null || ActorVfxRemoveHook.IsDisposed) return;
 
         ActorVfxRemoveHook.Original(ptr, (char)0);
         _vfxActors.Remove(ptr);
@@ -95,7 +107,7 @@ internal unsafe class VfxManager : IDisposable
 
     private IntPtr ActorVfxNewDetour(string path, IntPtr a2, IntPtr a3, float a4, char a5, ushort a6, char a7)
     {
-        if (ActorVfxCreateHook == null) return 0;
+        if (ActorVfxCreateHook == null || ActorVfxCreateHook.IsDisposed) return 0;
 
         IntPtr vfx = ActorVfxCreateHook.Original(path, a2, a3, a4, a5, a6, a7);
 
@@ -104,6 +116,6 @@ internal unsafe class VfxManager : IDisposable
 
     private IntPtr ActorVfxRemoveDetour(IntPtr vfx, char a2)
     {
-        return ActorVfxRemoveHook == null ? 0 : ActorVfxRemoveHook.Original(vfx, a2);
+        return ActorVfxRemoveHook == null || ActorVfxRemoveHook.IsDisposed ? 0 : ActorVfxRemoveHook.Original(vfx, a2);
     }
 }

@@ -100,33 +100,43 @@ public class MarePlayerWidget(
             }
             _lastUpdateTime = now;
         }
+        // 自动清理不可见玩家
+        if (GetConfigValue<bool>("AutoClearInvisible"))
+        {
+            // 为避免枚举时修改，先收集要移除的key
+            var toRemove = _cachedPlayers.Where(kv => !kv.Value.IsLocallyVisible).Select(kv => kv.Key).ToList();
+            foreach (var key in toRemove)
+                _cachedPlayers.Remove(key);
+        }
         var playerList = _cachedPlayers.Values.ToList();
-        bool isEmpty = playerList.Count == 0;
+        int visibleCount = playerList.Count(p => p.IsLocallyVisible);
+        int totalCount = playerList.Count;
+        bool isEmpty = totalCount == 0;
         bool useUnicode = GetConfigValue<bool>("UseUnicodeIcon");
-        var iconId = playerList.Count > 0 ? (uint)GetConfigValue<int>("IconId") : 0u;
+        var iconId = totalCount > 0 ? (uint)GetConfigValue<int>("IconId") : 0u;
         SetGameIconId(iconId);
         IsVisible = !(isEmpty && GetConfigValue<bool>("HideIfEmpty"));
         if (!IsVisible) return;
-        if (playerList.Count == 0)
+        if (totalCount == 0)
         {
             if (useUnicode)
             {
-                SetText("\uE044 0");
+                SetText("\uE044 0/0");
             }
             else
             {
-                SetText(" 0");
+                SetText(" 0/0");
                 ClearIcon();
             }
             return;
         }
         if (useUnicode)
         {
-            SetText($"\uE044 {playerList.Count}");
+            SetText($"\uE044 {visibleCount}/{totalCount}");
         }
         else
         {
-            SetText($" {playerList.Count}");
+            SetText($" {visibleCount}/{totalCount}");
         }
         UpdateMenuItems(playerList, _playerGroup);
     }
@@ -136,7 +146,39 @@ public class MarePlayerWidget(
     {
         if (!_menuItems.ContainsKey(group.Label!)) _menuItems[group.Label!] = [];
         List<string> usedIds = [];
-        foreach (var info in list)
+
+        // 排序：可见玩家按距离升序，不可见玩家全部排在后面
+        var visible = list.Where(p => p.IsLocallyVisible).OrderBy(p => p.Distance).ToList();
+        var invisible = list.Where(p => !p.IsLocallyVisible).OrderBy(p => p.Player?.ObjectIndex ?? int.MaxValue).ToList();
+        var sortedList = visible.Concat(invisible).ToList();
+        int sortIdx = 0;
+
+        // 自动清理开关按钮
+        const string autoClearBtnId = "auto_clear_btn";
+        bool autoClear = GetConfigValue<bool>("AutoClearInvisible");
+        string btnLabel = autoClear ? "自动清理：开" : "自动清理：关";
+        if (!_menuItems[group.Label!].ContainsKey(autoClearBtnId))
+        {
+            _menuItems[group.Label!][autoClearBtnId] = new MenuPopup.Button(btnLabel)
+            {
+                OnClick = () => {
+                    var current = GetConfigValue<bool>("AutoClearInvisible");
+                    SetConfigValue("AutoClearInvisible", !current);
+                    // 立即刷新菜单
+                    UpdateMenuItems(_cachedPlayers.Values.ToList(), group);
+                },
+                SortIndex = int.MinValue
+            };
+        }
+        var autoClearBtn = _menuItems[group.Label!][autoClearBtnId];
+        autoClearBtn.Label = btnLabel;
+        autoClearBtn.IsDisabled = false;
+        autoClearBtn.AltText = null;
+        autoClearBtn.ClosePopupOnClick = false;
+        group.Add(autoClearBtn);
+        usedIds.Add(autoClearBtnId);
+
+        foreach (var info in sortedList)
         {
             var id = $"obj_{info.GameObjectId}";
             string label = info.Name;
@@ -151,6 +193,7 @@ public class MarePlayerWidget(
                         if (obj == null || !info.IsLocallyVisible) return;
                         TargetManager.Target = obj;
                     },
+                    ClosePopupOnClick = true,
                 };
             }
             var button = _menuItems[group.Label!][id];
@@ -160,10 +203,11 @@ public class MarePlayerWidget(
                 if (obj == null || !info.IsLocallyVisible) return;
                 TargetManager.Target = obj;
             };
+            button.ClosePopupOnClick = true;
             button.IsDisabled = !info.IsLocallyVisible || info.Distance > 50;
             button.Icon       = null;
             button.AltText    = dist;
-            button.SortIndex  = info.Player?.ObjectIndex ?? 0;
+            button.SortIndex  = sortIdx++; // 保证UI渲染顺序和排序一致
             group.Add(button);
         }
         foreach (var (id, btn) in _menuItems[group.Label!].ToDictionary())
@@ -204,6 +248,12 @@ public class MarePlayerWidget(
                 "更新间隔 (秒)",
                 "组件刷新间隔，支持小数，最小0.05。",
                 1.0f
+            ),
+            new BooleanWidgetConfigVariable(
+                "AutoClearInvisible",
+                "自动清理不可见玩家",
+                "开启后，列表会自动移除所有不可见玩家。",
+                false
             ),
         ];
     }

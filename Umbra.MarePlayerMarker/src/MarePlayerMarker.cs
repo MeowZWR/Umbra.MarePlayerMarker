@@ -62,7 +62,7 @@ internal sealed class MarePlayerMarker(
             new BooleanMarkerConfigVariable(
                 "AnonymizeName",
                 "匿名",
-                "为名称中的随机一个字打码。",
+                "为角色名称打码。",
                 false
             ),
             new BooleanMarkerConfigVariable(

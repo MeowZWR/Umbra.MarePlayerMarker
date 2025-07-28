@@ -36,6 +36,10 @@ public class MenuButtonManager
                 SortIndex = sortIndex
             };
         }
+        else
+        {
+            _menuItems[groupName][buttonId].SortIndex = sortIndex;
+        }
         return _menuItems[groupName][buttonId];
     }
     
@@ -268,7 +272,7 @@ public class MarePlayerWidget(
         var usedIds = new List<string>();
         var sortedList = playerList
             .Where(p => p.IsLocallyVisible).OrderBy(p => p.Distance)
-            .Concat(playerList.Where(p => !p.IsLocallyVisible).OrderBy(p => p.Player?.ObjectIndex ?? int.MaxValue))
+            .Concat(playerList.Where(p => !p.IsLocallyVisible).OrderBy(p => p.GameObjectId))
             .ToList();
 
         if (sortedList.Count == 0)
@@ -342,9 +346,9 @@ public class MarePlayerWidget(
         return
         [
             ..base.GetConfigVariables(),
-            new BooleanWidgetConfigVariable("HideIfEmpty", LocalizationManager.GetText("Config.HideIfEmpty.Name"), LocalizationManager.GetText("Config.HideIfEmpty.Description"), true),
+            new BooleanWidgetConfigVariable("HideIfEmpty", LocalizationManager.GetText("Config.HideIfEmpty.Name"), LocalizationManager.GetText("Config.HideIfEmpty.Description"), false),
             new BooleanWidgetConfigVariable("UseUnicodeIcon", LocalizationManager.GetText("Config.UseUnicodeIcon.Name"), LocalizationManager.GetText("Config.UseUnicodeIcon.Description"), true),
-            new IntegerWidgetConfigVariable("IconId", LocalizationManager.GetText("Config.IconId.Name"), LocalizationManager.GetText("Config.IconId.Description"), 63936),
+            new IntegerWidgetConfigVariable("IconId", LocalizationManager.GetText("Config.IconId.Name"), LocalizationManager.GetText("Config.IconId.Description"), 0),
             new FloatWidgetConfigVariable("UpdateIntervalSeconds", LocalizationManager.GetText("Config.UpdateInterval.Name"), LocalizationManager.GetText("Config.UpdateInterval.Description"), 1.0f),
             new BooleanWidgetConfigVariable("AutoClearInvisible", LocalizationManager.GetText("Config.AutoClearInvisible.Name"), LocalizationManager.GetText("Config.AutoClearInvisible.Description"), false),
         ];

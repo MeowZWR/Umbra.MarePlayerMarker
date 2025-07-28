@@ -8,6 +8,7 @@ using Dalamud.Plugin.Services;
 using Umbra.Common;
 using Umbra.Game;
 using Umbra.Markers;
+using Umbra.Markers.System;
 using Umbra.MarePlayerMarker.Localization;
 
 namespace Umbra.MarePlayerMarker;
@@ -23,6 +24,53 @@ internal sealed class MarePlayerMarker(
 {
     private readonly Dictionary<ulong, string> _playerHomeWorlds = [];
     private readonly Dictionary<string, string> _anonymizedNames = [];
+    
+    private static readonly bool _supportsCompassText = CheckCompassTextSupport();
+    
+    private static bool CheckCompassTextSupport()
+    {
+        try
+        {
+            var markerType = typeof(WorldMarker);
+            var compassTextProperty = markerType.GetProperty("CompassText");
+            return compassTextProperty != null;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
+    private WorldMarker CreateMarkerSafely(string key, uint mapId, uint iconId, Vector3 position, 
+        string label, Vector2 fadeDistance, bool showOnCompass, string? compassText)
+    {
+        var marker = new WorldMarker
+        {
+            Key = key,
+            MapId = mapId,
+            IconId = iconId,
+            Position = position,
+            Label = label,
+            FadeDistance = fadeDistance,
+            ShowOnCompass = showOnCompass
+        };
+        
+        if (_supportsCompassText && !string.IsNullOrEmpty(compassText))
+        {
+            try
+            {
+                var markerType = typeof(WorldMarker);
+                var compassTextProperty = markerType.GetProperty("CompassText");
+                compassTextProperty?.SetValue(marker, compassText);
+            }
+            catch
+            {
+                // Ignore reflection failures
+            }
+        }
+        
+        return marker;
+    }
 
     public override string Id          => "Umbra_MarePlayerMarker";
     public override string Name        => LocalizationManager.GetText("Marker.Name");
@@ -37,12 +85,12 @@ internal sealed class MarePlayerMarker(
             return cachedName;
         
         string anonymizedName;
-        if (name.Contains(' ')) // 国际服角色名逻辑，有空格
+        if (name.Contains(' '))
         {
             var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             anonymizedName = string.Join(" ", parts.Select(p => p.Length > 0 ? $"{p[0]}." : ""));
         }
-        else // 国服角色名逻辑，无空格
+        else
         {
             anonymizedName = name.Length > 0 ? $"{name[0]}." : name;
         }
@@ -53,39 +101,48 @@ internal sealed class MarePlayerMarker(
 
     public override List<IMarkerConfigVariable> GetConfigVariables()
     {
-        return [
-            ..DefaultStateConfigVariables,
-            new BooleanMarkerConfigVariable(
-                "ShowName",
-                LocalizationManager.GetText("Marker.Config.ShowName.Name"),
-                LocalizationManager.GetText("Marker.Config.ShowName.Description"),
-                true
-            ),
-            new BooleanMarkerConfigVariable(
-                "AnonymizeName",
-                LocalizationManager.GetText("Marker.Config.AnonymizeName.Name"),
-                LocalizationManager.GetText("Marker.Config.AnonymizeName.Description"),
-                false
-            ),
-            new BooleanMarkerConfigVariable(
-                "ShowHomeWorld",
-                LocalizationManager.GetText("Marker.Config.ShowHomeWorld.Name"),
-                LocalizationManager.GetText("Marker.Config.ShowHomeWorld.Description"),
-                false
-            ),
-            new BooleanMarkerConfigVariable(
-                "UseUnicodeIcon",
-                LocalizationManager.GetText("Marker.Config.UseUnicodeIcon.Name"),
-                LocalizationManager.GetText("Marker.Config.UseUnicodeIcon.Description"),
-                true
-            ),
-            new BooleanMarkerConfigVariable(
+        var variables = new List<IMarkerConfigVariable>();
+        variables.AddRange(DefaultStateConfigVariables);
+        
+        variables.Add(new BooleanMarkerConfigVariable(
+            "ShowName",
+            LocalizationManager.GetText("Marker.Config.ShowName.Name"),
+            LocalizationManager.GetText("Marker.Config.ShowName.Description"),
+            true
+        ));
+        
+        variables.Add(new BooleanMarkerConfigVariable(
+            "AnonymizeName",
+            LocalizationManager.GetText("Marker.Config.AnonymizeName.Name"),
+            LocalizationManager.GetText("Marker.Config.AnonymizeName.Description"),
+            false
+        ));
+        
+        variables.Add(new BooleanMarkerConfigVariable(
+            "ShowHomeWorld",
+            LocalizationManager.GetText("Marker.Config.ShowHomeWorld.Name"),
+            LocalizationManager.GetText("Marker.Config.ShowHomeWorld.Description"),
+            false
+        ));
+        
+        variables.Add(new BooleanMarkerConfigVariable(
+            "UseUnicodeIcon",
+            LocalizationManager.GetText("Marker.Config.UseUnicodeIcon.Name"),
+            LocalizationManager.GetText("Marker.Config.UseUnicodeIcon.Description"),
+            true
+        ));
+
+        if (_supportsCompassText)
+        {
+            variables.Add(new BooleanMarkerConfigVariable(
                 "ShowCompassText",
                 LocalizationManager.GetText("Marker.Config.ShowCompassText.Name"),
                 LocalizationManager.GetText("Marker.Config.ShowCompassText.Description"),
                 true
-            ),
-            new SelectMarkerConfigVariable(
+            ));
+        }
+        
+        variables.Add(new SelectMarkerConfigVariable(
                 "VfxId",
                 LocalizationManager.GetText("Marker.Config.VfxId.Name"),
                 LocalizationManager.GetText("Marker.Config.VfxId.Description"),
@@ -121,44 +178,50 @@ internal sealed class MarePlayerMarker(
                     // 标记
                     { "vfx/common/eff/n4g8_stlp_shlight1v.avfx", LocalizationManager.GetText("Vfx.Mark.HolyBombardment") },
                 }
-            ),
-            new IntegerMarkerConfigVariable(
-                "IconId",
-                LocalizationManager.GetText("Marker.Config.IconId.Name"),
-                LocalizationManager.GetText("Marker.Config.IconId.Description"),
-                63936
-            ),
-            new IntegerMarkerConfigVariable(
-                "MarkerHeight",
-                LocalizationManager.GetText("Marker.Config.MarkerHeight.Name"),
-                LocalizationManager.GetText("Marker.Config.MarkerHeight.Description"),
-                2,
-                -10,
-                10
-            ),
-            new IntegerMarkerConfigVariable(
-                "FadeDistance",
-                LocalizationManager.GetText("Marker.Config.FadeDistance.Name"),
-                LocalizationManager.GetText("Marker.Config.FadeDistance.Description"),
-                10,
-                0,
-                100
-            ),
-            new IntegerMarkerConfigVariable(
-                "FadeAttenuation",
-                LocalizationManager.GetText("Marker.Config.FadeAttenuation.Name"),
-                LocalizationManager.GetText("Marker.Config.FadeAttenuation.Description"),
-                5,
-                0,
-                100
-            ),
-            new IntegerMarkerConfigVariable(
-                "MaxVisibleDistance",
-                LocalizationManager.GetText("Marker.Config.MaxVisibleDistance.Name"),
-                LocalizationManager.GetText("Marker.Config.MaxVisibleDistance.Description"),
-                0
-            )
-        ];
+            ));
+            
+        variables.Add(new IntegerMarkerConfigVariable(
+            "IconId",
+            LocalizationManager.GetText("Marker.Config.IconId.Name"),
+            LocalizationManager.GetText("Marker.Config.IconId.Description"),
+            63936
+        ));
+        
+        variables.Add(new IntegerMarkerConfigVariable(
+            "MarkerHeight",
+            LocalizationManager.GetText("Marker.Config.MarkerHeight.Name"),
+            LocalizationManager.GetText("Marker.Config.MarkerHeight.Description"),
+            2,
+            -10,
+            10
+        ));
+        
+        variables.Add(new IntegerMarkerConfigVariable(
+            "FadeDistance",
+            LocalizationManager.GetText("Marker.Config.FadeDistance.Name"),
+            LocalizationManager.GetText("Marker.Config.FadeDistance.Description"),
+            10,
+            0,
+            100
+        ));
+        
+        variables.Add(new IntegerMarkerConfigVariable(
+            "FadeAttenuation",
+            LocalizationManager.GetText("Marker.Config.FadeAttenuation.Name"),
+            LocalizationManager.GetText("Marker.Config.FadeAttenuation.Description"),
+            5,
+            0,
+            100
+        ));
+        
+        variables.Add(new IntegerMarkerConfigVariable(
+            "MaxVisibleDistance",
+            LocalizationManager.GetText("Marker.Config.MaxVisibleDistance.Name"),
+            LocalizationManager.GetText("Marker.Config.MaxVisibleDistance.Description"),
+            0
+        ));
+        
+        return variables;
     }
 
     [OnTick]
@@ -199,32 +262,27 @@ internal sealed class MarePlayerMarker(
             var     fadeAttenuation  = GetConfigValue<int>("FadeAttenuation");
             var     maxVisibleDistance = GetConfigValue<int>("MaxVisibleDistance");
             var     useUnicodeIcon   = GetConfigValue<bool>("UseUnicodeIcon");
-            var     showCompassText  = GetConfigValue<bool>("ShowCompassText");
+            var     showCompassText  = _supportsCompassText ? GetConfigValue<bool>("ShowCompassText") : false;
             Vector2 fadeDist         = new(fadeDistance, fadeDistance + Math.Max(1, fadeAttenuation));
 
-            // 按Y坐标排序，确保标记从上到下排列
             targets.Sort((a, b) => a.Position.Y.CompareTo(b.Position.Y));
 
-            // 计算每个玩家的标记位置
             var markerPositions = new Dictionary<ulong, Vector3>();
             foreach (var obj in targets) {
                 var basePosition = obj.Position with { Y = obj.Position.Y + markerHeight };
                 
-                // 检查是否有其他标记在附近
                 List<Vector3> nearbyMarkers = markerPositions.Values
                     .Where(p => Vector3.Distance(p, basePosition) < 2.0f)
                     .OrderBy(p => p.Y)
                     .ToList();
 
                 if (nearbyMarkers.Count > 0) {
-                    // 如果有其他标记，将新标记放在最高的标记上方
                     basePosition = basePosition with { Y = nearbyMarkers.Last().Y + 1.0f };
                 }
 
                 markerPositions[obj.GameObjectId] = basePosition;
             }
 
-            // 更新HomeWorld缓存
             var currentPlayerIds = targets.Select(t => t.GameObjectId).ToHashSet();
             _playerHomeWorlds.Keys.Where(id => !currentPlayerIds.Contains(id)).ToList().ForEach(id => _playerHomeWorlds.Remove(id));
             
@@ -270,18 +328,17 @@ internal sealed class MarePlayerMarker(
                     label = string.IsNullOrEmpty(label) ? "\uE044" : $"\uE044 {label}";
                 }
 
-                SetMarker(
-                    new() {
-                        Key           = key,
-                        MapId         = zoneId,
-                        IconId        = useUnicodeIcon ? 0u : iconId,
-                        Position      = markerPositions[obj.GameObjectId],
-                        Label         = label,
-                        FadeDistance  = fadeDist,
-                        ShowOnCompass = showOnCompass,
-                        CompassText   = showOnCompass && showCompassText ? label : null,
-                    }
+                var marker = CreateMarkerSafely(
+                    key,
+                    zoneId,
+                    useUnicodeIcon ? 0u : iconId,
+                    markerPositions[obj.GameObjectId],
+                    label,
+                    fadeDist,
+                    showOnCompass,
+                    showOnCompass && showCompassText ? label : null
                 );
+                SetMarker(marker);
             }
 
             RemoveMarkersExcept(usedIds);

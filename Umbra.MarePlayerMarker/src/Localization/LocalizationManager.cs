@@ -18,7 +18,6 @@ public static class LocalizationManager
     {
         try
         {
-            // 使用Umbra的语言获取方法，这会考虑用户的语言覆盖设置
             var umbraLang = I18N.GetCurrentLanguage();
             _currentLanguage = umbraLang == "zh" ? "zh" : "en"; 
         }
@@ -52,9 +51,7 @@ public static class LocalizationManager
             ["Config.HideIfEmpty.Name"] = "如果没有同步玩家，则隐藏组件。",
             ["Config.HideIfEmpty.Description"] = "如果当前没有通过Mare同步的玩家，隐藏组件。",
             ["Config.UseUnicodeIcon.Name"] = "使用Unicode图标",
-            ["Config.UseUnicodeIcon.Description"] = "使用Unicode字符作为图标，而不是使用图标ID。",
-            ["Config.IconId.Name"] = "同步玩家图标ID",
-            ["Config.IconId.Description"] = "用于组件的图标ID。使用值0可禁用图标。输入\"/xldata icons\"到聊天框中以访问图标浏览器。仅在未使用Unicode图标时有效。",
+            ["Config.UseUnicodeIcon.Description"] = "使用Unicode字符\uE044作为图标",
             ["Config.UpdateInterval.Name"] = "更新间隔 (秒)",
             ["Config.UpdateInterval.Description"] = "组件刷新间隔，支持小数，最小0.05。",
             ["Config.AutoClearInvisible.Name"] = "自动清理不可见玩家",
@@ -132,9 +129,7 @@ public static class LocalizationManager
             ["Config.HideIfEmpty.Name"] = "Hide widget if no synced players",
             ["Config.HideIfEmpty.Description"] = "Hide the widget when there are no players synced through Mare.",
             ["Config.UseUnicodeIcon.Name"] = "Use Unicode Icon",
-            ["Config.UseUnicodeIcon.Description"] = "Use Unicode character as icon instead of using icon ID.",
-            ["Config.IconId.Name"] = "Synced Players Icon ID", 
-            ["Config.IconId.Description"] = "Icon ID for the widget. Use value 0 to disable icon. Type \"/xldata icons\" in chat to access icon browser. Only effective when Unicode icon is not used.",
+            ["Config.UseUnicodeIcon.Description"] = "Use Unicode character \uE044 as icon.",
             ["Config.UpdateInterval.Name"] = "Update Interval (seconds)",
             ["Config.UpdateInterval.Description"] = "Widget refresh interval, supports decimals, minimum 0.05.",
             ["Config.AutoClearInvisible.Name"] = "Auto clear invisible players",

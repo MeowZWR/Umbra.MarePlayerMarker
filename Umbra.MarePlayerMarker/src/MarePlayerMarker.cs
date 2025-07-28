@@ -18,8 +18,7 @@ internal sealed class MarePlayerMarker(
     MarePlayerRepository repository,
     MarePlayerRenderer renderer,
     IPlayer player,
-    IZoneManager zoneManager,
-    MareIpcService mareIpc
+    IZoneManager zoneManager
 ) : WorldMarkerFactory
 {
     private readonly Dictionary<ulong, string> _playerHomeWorlds = [];

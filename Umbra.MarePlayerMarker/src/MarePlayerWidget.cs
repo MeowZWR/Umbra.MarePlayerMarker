@@ -107,7 +107,7 @@ public class MarePlayerWidget(
 ) : StandardToolbarWidget(info, guid, configValues)
 {
     public override MenuPopup Popup { get; } = new();
-    protected override StandardWidgetFeatures Features => StandardWidgetFeatures.Text | StandardWidgetFeatures.Icon;
+    protected override StandardWidgetFeatures Features => StandardWidgetFeatures.Text;
 
     private readonly MenuButtonManager _buttonManager = new();
     private readonly MenuPopup.Group _settingsGroup = new(LocalizationManager.GetText("ComponentSettings"));
@@ -213,19 +213,17 @@ public class MarePlayerWidget(
     private void UpdateWidgetDisplay(int totalCount, int visibleCount)
     {
         var useUnicode = GetConfigValue<bool>("UseUnicodeIcon");
-        var iconId = totalCount > 0 ? (uint)GetConfigValue<int>("IconId") : 0u;
         
-        SetGameIconId(iconId);
         IsVisible = !(totalCount == 0 && GetConfigValue<bool>("HideIfEmpty"));
+        ClearIcon(); // 不使用游戏图标，只显示文本
         
         if (totalCount == 0)
         {
-            SetText(useUnicode ? "\uE044 0/0" : " 0/0");
-            if (!useUnicode) ClearIcon();
+            SetText(useUnicode ? "\uE044 0/0" : "0/0");
         }
         else
         {
-            SetText(useUnicode ? $"\uE044 {visibleCount}/{totalCount}" : $" {visibleCount}/{totalCount}");
+            SetText(useUnicode ? $"\uE044 {visibleCount}/{totalCount}" : $"{visibleCount}/{totalCount}");
         }
     }
 
@@ -348,7 +346,6 @@ public class MarePlayerWidget(
             ..base.GetConfigVariables(),
             new BooleanWidgetConfigVariable("HideIfEmpty", LocalizationManager.GetText("Config.HideIfEmpty.Name"), LocalizationManager.GetText("Config.HideIfEmpty.Description"), false),
             new BooleanWidgetConfigVariable("UseUnicodeIcon", LocalizationManager.GetText("Config.UseUnicodeIcon.Name"), LocalizationManager.GetText("Config.UseUnicodeIcon.Description"), true),
-            new IntegerWidgetConfigVariable("IconId", LocalizationManager.GetText("Config.IconId.Name"), LocalizationManager.GetText("Config.IconId.Description"), 0),
             new FloatWidgetConfigVariable("UpdateIntervalSeconds", LocalizationManager.GetText("Config.UpdateInterval.Name"), LocalizationManager.GetText("Config.UpdateInterval.Description"), 1.0f),
             new BooleanWidgetConfigVariable("AutoClearInvisible", LocalizationManager.GetText("Config.AutoClearInvisible.Name"), LocalizationManager.GetText("Config.AutoClearInvisible.Description"), false),
         ];

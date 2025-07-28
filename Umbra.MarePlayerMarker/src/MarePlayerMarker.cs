@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Plugin.Services;
 using Umbra.Common;
 using Umbra.Game;
@@ -20,7 +21,7 @@ internal sealed class MarePlayerMarker(
     MareIpcService mareIpc
 ) : WorldMarkerFactory
 {
-    private readonly Dictionary<ulong, string> _playerUids = [];
+    private readonly Dictionary<ulong, string> _playerHomeWorlds = [];
     private readonly Dictionary<string, string> _anonymizedNames = [];
 
     public override string Id          => "Umbra_MarePlayerMarker";
@@ -67,9 +68,9 @@ internal sealed class MarePlayerMarker(
                 false
             ),
             new BooleanMarkerConfigVariable(
-                "ShowUid",
-                LocalizationManager.GetText("Marker.Config.ShowUid.Name"),
-                LocalizationManager.GetText("Marker.Config.ShowUid.Description"),
+                "ShowHomeWorld",
+                LocalizationManager.GetText("Marker.Config.ShowHomeWorld.Name"),
+                LocalizationManager.GetText("Marker.Config.ShowHomeWorld.Description"),
                 false
             ),
             new BooleanMarkerConfigVariable(
@@ -192,7 +193,7 @@ internal sealed class MarePlayerMarker(
             var     markerHeight     = GetConfigValue<int>("MarkerHeight");
             var     showName         = GetConfigValue<bool>("ShowName");
             var     anonymizeName    = GetConfigValue<bool>("AnonymizeName");
-            var     showUid          = GetConfigValue<bool>("ShowUid");
+            var     showHomeWorld    = GetConfigValue<bool>("ShowHomeWorld");
             var     showOnCompass    = GetConfigValue<bool>("ShowOnCompass");
             var     fadeDistance     = GetConfigValue<int>("FadeDistance");
             var     fadeAttenuation  = GetConfigValue<int>("FadeAttenuation");
@@ -222,13 +223,17 @@ internal sealed class MarePlayerMarker(
                 markerPositions[obj.GameObjectId] = basePosition;
             }
 
-            // 更新UID缓存
+            // 更新HomeWorld缓存
             var currentPlayerIds = targets.Select(t => t.GameObjectId).ToHashSet();
-            _playerUids.Keys.Where(id => !currentPlayerIds.Contains(id)).ToList().ForEach(id => _playerUids.Remove(id));
+            _playerHomeWorlds.Keys.Where(id => !currentPlayerIds.Contains(id)).ToList().ForEach(id => _playerHomeWorlds.Remove(id));
             
             foreach (var obj in targets) {
-                if (!_playerUids.ContainsKey(obj.GameObjectId)) {
-                    _playerUids[obj.GameObjectId] = mareIpc.GetPlayerUid(obj.GameObjectId);
+                if (!_playerHomeWorlds.ContainsKey(obj.GameObjectId) && obj is IPlayerCharacter player) {
+                    try {
+                        _playerHomeWorlds[obj.GameObjectId] = player.HomeWorld.Value.Name.ToString();
+                    } catch {
+                        _playerHomeWorlds[obj.GameObjectId] = "Unknown";
+                    }
                 }
             }
 
@@ -237,16 +242,16 @@ internal sealed class MarePlayerMarker(
                 usedIds.Add(key);
 
                 string label = "";
-                if (showName && showUid) {
-                    label = $"{obj.Name.TextValue} ({_playerUids[obj.GameObjectId]})";
+                if (showName && showHomeWorld) {
+                    label = $"{obj.Name.TextValue} ({_playerHomeWorlds.GetValueOrDefault(obj.GameObjectId, "Unknown")})";
                 } else if (showName) {
                     label = obj.Name.TextValue;
-                } else if (showUid) {
-                    label = _playerUids[obj.GameObjectId];
+                } else if (showHomeWorld) {
+                    label = _playerHomeWorlds.GetValueOrDefault(obj.GameObjectId, "Unknown");
                 }
 
                 if (showName && anonymizeName && !string.IsNullOrEmpty(label)) {
-                    if (showUid) {
+                    if (showHomeWorld) {
                         int bracketIndex = label.IndexOf(" (");
                         if (bracketIndex > 0) {
                             string name = label[..bracketIndex];
@@ -290,9 +295,9 @@ internal sealed class MarePlayerMarker(
                 {
                     activeNames.Add(obj.Name.TextValue);
                     
-                    if (showName && showUid)
+                    if (showName && showHomeWorld)
                     {
-                        activeNames.Add($"{obj.Name.TextValue} ({_playerUids[obj.GameObjectId]})");
+                        activeNames.Add($"{obj.Name.TextValue} ({_playerHomeWorlds.GetValueOrDefault(obj.GameObjectId, "Unknown")})");
                     }
                 }
                 

@@ -59,9 +59,15 @@ internal sealed class MareIpcService : IDisposable
         try {
             var handledAddresses = _getHandledAddresses!.InvokeFunc();
             var result = new List<IGameObject>();
+            var localPlayer = _clientState.LocalPlayer;
 
             foreach (var obj in _objectTable) {
                 if (obj is not IPlayerCharacter player) continue;
+                
+                if (localPlayer != null && player.GameObjectId == localPlayer.GameObjectId) {
+                    continue;
+                }
+                
                 if (handledAddresses.Contains((nint)player.Address)) {
                     result.Add(player);
                 }
@@ -92,6 +98,11 @@ internal sealed class MareIpcService : IDisposable
         try {
             var obj = _objectTable.SearchById(objectId);
             if (obj is not IPlayerCharacter player) return false;
+            
+            var localPlayer = _clientState.LocalPlayer;
+            if (localPlayer != null && player.GameObjectId == localPlayer.GameObjectId) {
+                return false;
+            }
             
             var handledAddresses = _getHandledAddresses!.InvokeFunc();
             return handledAddresses.Contains((nint)player.Address);

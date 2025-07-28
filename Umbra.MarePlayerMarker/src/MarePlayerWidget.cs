@@ -9,6 +9,7 @@ using Umbra.Game;
 using Umbra.Widgets;
 using System;
 using Dalamud.Game.ClientState.Objects.Enums;
+using Umbra.MarePlayerMarker.Localization;
 
 namespace Umbra.MarePlayerMarker;
 
@@ -104,8 +105,8 @@ public class MarePlayerWidget(
     protected override StandardWidgetFeatures Features => StandardWidgetFeatures.Text | StandardWidgetFeatures.Icon;
 
     private readonly MenuButtonManager _buttonManager = new();
-    private readonly MenuPopup.Group _settingsGroup = new("组件设置");
-    private readonly MenuPopup.Group _playerGroup = new("同步玩家");
+    private readonly MenuPopup.Group _settingsGroup = new(LocalizationManager.GetText("ComponentSettings"));
+    private readonly MenuPopup.Group _playerGroup = new(LocalizationManager.GetText("SyncPlayers"));
     
     private readonly MarePlayerRepository _repository = Framework.Service<MarePlayerRepository>();
     private readonly MarePlayerMarker _marker = Framework.Service<MarePlayerMarker>();
@@ -121,13 +122,13 @@ public class MarePlayerWidget(
     protected override void OnLoad()
     {
         _toggleButtons = [
-            new("auto_clear_btn", "自动清理：开", "自动清理：关", 
+            new("auto_clear_btn", LocalizationManager.GetText("AutoClear.On"), LocalizationManager.GetText("AutoClear.Off"), 
                 () => GetConfigValue<bool>("AutoClearInvisible"),
                 val => SetConfigValue("AutoClearInvisible", val), 0),
-            new("anonymize_btn", "角色匿名：开", "角色匿名：关",
+            new("anonymize_btn", LocalizationManager.GetText("Anonymize.On"), LocalizationManager.GetText("Anonymize.Off"),
                 () => _marker.GetConfigValue<bool>("AnonymizeName"),
                 val => _marker.SetConfigValue("AnonymizeName", val), 1),
-            new("vfx_btn", "特效标记：开", "特效标记：关",
+            new("vfx_btn", LocalizationManager.GetText("VfxMarker.On"), LocalizationManager.GetText("VfxMarker.Off"),
                 () => !string.IsNullOrEmpty(_marker.GetConfigValue<string>("VfxId")),
                 val => ToggleVfx(val), 2)
         ];
@@ -263,8 +264,9 @@ public class MarePlayerWidget(
     private void CreateEmptyStateButton(List<string> usedIds)
     {
         const string emptyTipId = "empty_tip";
-        var button = _buttonManager.GetOrCreateButton(_playerGroup.Label!, emptyTipId, "暂无同步玩家", () => { });
-        _buttonManager.UpdateButton(button, "暂无同步玩家", isDisabled: true);
+        var emptyText = LocalizationManager.GetText("NoSyncPlayers");
+        var button = _buttonManager.GetOrCreateButton(_playerGroup.Label!, emptyTipId, emptyText, () => { });
+        _buttonManager.UpdateButton(button, emptyText, isDisabled: true);
         _playerGroup.Add(button);
         usedIds.Add(emptyTipId);
     }
@@ -275,7 +277,9 @@ public class MarePlayerWidget(
         foreach (var info in sortedList)
         {
             var id = $"obj_{info.GameObjectId}";
-            var distText = info.IsLocallyVisible ? $"{info.Distance:N0} 米" : "不可见";
+            var distText = info.IsLocallyVisible 
+                ? $"{info.Distance:N0} {LocalizationManager.GetText("Distance.Meters")}" 
+                : LocalizationManager.GetText("Distance.NotVisible");
             
             var button = _buttonManager.GetOrCreateButton(_playerGroup.Label!, id, info.Name, 
                 () => {
@@ -313,11 +317,11 @@ public class MarePlayerWidget(
         return
         [
             ..base.GetConfigVariables(),
-            new BooleanWidgetConfigVariable("HideIfEmpty", "如果没有同步玩家，则隐藏组件。", "如果当前没有通过Mare同步的玩家，隐藏组件。", true),
-            new BooleanWidgetConfigVariable("UseUnicodeIcon", "使用Unicode图标", "使用Unicode字符作为图标，而不是使用图标ID。", true),
-            new IntegerWidgetConfigVariable("IconId", "同步玩家图标ID", "用于组件的图标ID。使用值0可禁用图标。输入\"/xldata icons\"到聊天框中以访问图标浏览器。仅在未使用Unicode图标时有效。", 63936),
-            new FloatWidgetConfigVariable("UpdateIntervalSeconds", "更新间隔 (秒)", "组件刷新间隔，支持小数，最小0.05。", 1.0f),
-            new BooleanWidgetConfigVariable("AutoClearInvisible", "自动清理不可见玩家", "开启后，列表会自动移除所有不可见玩家。", false),
+            new BooleanWidgetConfigVariable("HideIfEmpty", LocalizationManager.GetText("Config.HideIfEmpty.Name"), LocalizationManager.GetText("Config.HideIfEmpty.Description"), true),
+            new BooleanWidgetConfigVariable("UseUnicodeIcon", LocalizationManager.GetText("Config.UseUnicodeIcon.Name"), LocalizationManager.GetText("Config.UseUnicodeIcon.Description"), true),
+            new IntegerWidgetConfigVariable("IconId", LocalizationManager.GetText("Config.IconId.Name"), LocalizationManager.GetText("Config.IconId.Description"), 63936),
+            new FloatWidgetConfigVariable("UpdateIntervalSeconds", LocalizationManager.GetText("Config.UpdateInterval.Name"), LocalizationManager.GetText("Config.UpdateInterval.Description"), 1.0f),
+            new BooleanWidgetConfigVariable("AutoClearInvisible", LocalizationManager.GetText("Config.AutoClearInvisible.Name"), LocalizationManager.GetText("Config.AutoClearInvisible.Description"), false),
         ];
     }
 } 

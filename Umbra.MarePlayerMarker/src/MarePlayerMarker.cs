@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 using Umbra.Common;
 using Umbra.Game;
 using Umbra.Markers;
+using Umbra.MarePlayerMarker.Localization;
 
 namespace Umbra.MarePlayerMarker;
 
@@ -23,8 +24,8 @@ internal sealed class MarePlayerMarker(
     private readonly Dictionary<string, string> _anonymizedNames = [];
 
     public override string Id          => "Umbra_MarePlayerMarker";
-    public override string Name        => "Mare同步玩家标记";
-    public override string Description => "显示通过Mare与你同步的玩家的世界标记。";
+    public override string Name        => LocalizationManager.GetText("Marker.Name");
+    public override string Description => LocalizationManager.GetText("Marker.Description");
 
     private string AnonymizeName(string name)
     {
@@ -55,105 +56,105 @@ internal sealed class MarePlayerMarker(
             ..DefaultStateConfigVariables,
             new BooleanMarkerConfigVariable(
                 "ShowName",
-                "显示名称",
-                "在世界标记上显示同步玩家的名字。",
+                LocalizationManager.GetText("Marker.Config.ShowName.Name"),
+                LocalizationManager.GetText("Marker.Config.ShowName.Description"),
                 true
             ),
             new BooleanMarkerConfigVariable(
                 "AnonymizeName",
-                "匿名",
-                "为角色名称打码。",
+                LocalizationManager.GetText("Marker.Config.AnonymizeName.Name"),
+                LocalizationManager.GetText("Marker.Config.AnonymizeName.Description"),
                 false
             ),
             new BooleanMarkerConfigVariable(
                 "ShowUid",
-                "显示UID",
-                "在世界标记上显示玩家的游戏UID。",
+                LocalizationManager.GetText("Marker.Config.ShowUid.Name"),
+                LocalizationManager.GetText("Marker.Config.ShowUid.Description"),
                 false
             ),
             new BooleanMarkerConfigVariable(
                 "UseUnicodeIcon",
-                "使用Unicode图标",
-                "使用Unicode字符\uE044作为图标，而不是使用图标ID。",
+                LocalizationManager.GetText("Marker.Config.UseUnicodeIcon.Name"),
+                LocalizationManager.GetText("Marker.Config.UseUnicodeIcon.Description"),
                 true
             ),
             new BooleanMarkerConfigVariable(
                 "ShowCompassText",
-                "在罗盘上显示文本",
-                "在罗盘上显示Unicode图标和玩家名称，而不仅仅是图标。",
+                LocalizationManager.GetText("Marker.Config.ShowCompassText.Name"),
+                LocalizationManager.GetText("Marker.Config.ShowCompassText.Description"),
                 true
             ),
             new SelectMarkerConfigVariable(
                 "VfxId",
-                "特效（开着卸载插件可能炸游戏）",
-                "显示在同步玩家身上的视觉效果。（非循环特效会炸游戏，虽然我挑选过了，但说不定验证漏了呢）",
-                "无",
+                LocalizationManager.GetText("Marker.Config.VfxId.Name"),
+                LocalizationManager.GetText("Marker.Config.VfxId.Description"),
+                LocalizationManager.GetText("Vfx.None"),
                 new() {
-                    { "", "无" },
+                    { "", LocalizationManager.GetText("Vfx.None") },
                     // 基础效果
-                    { "vfx/common/eff/cmrz_castx1c.avfx", "【基础】光" },
-                    { "vfx/common/eff/levitate0f.avfx", "【基础】悬浮" },
-                    { "vfx/common/eff/dk10ht_cha0h.avfx", "【基础】爱慕者" },
+                    { "vfx/common/eff/cmrz_castx1c.avfx", LocalizationManager.GetText("Vfx.Basic.Light") },
+                    { "vfx/common/eff/levitate0f.avfx", LocalizationManager.GetText("Vfx.Basic.Levitate") },
+                    { "vfx/common/eff/dk10ht_cha0h.avfx", LocalizationManager.GetText("Vfx.Basic.Admirer") },
                     
                     // 环绕效果
-                    { "vfx/common/eff/dkst_evt01f.avfx", "【环绕】环绕标记1" },
-                    { "vfx/common/eff/x6fa_stlp01_c0a1.avfx", "【环绕】环绕标记2" },
-                    { "vfx/common/eff/x6fa_stlp02_c0a1.avfx", "【环绕】环绕标记3" },
-                    { "vfx/common/eff/m7105_stlp02_c0k1.avfx", "【环绕】大型环绕" },
-                    { "vfx/common/eff/m0328sp10st0f.avfx", "【环绕】旋转球" },
+                    { "vfx/common/eff/dkst_evt01f.avfx", LocalizationManager.GetText("Vfx.Surround.Mark1") },
+                    { "vfx/common/eff/x6fa_stlp01_c0a1.avfx", LocalizationManager.GetText("Vfx.Surround.Mark2") },
+                    { "vfx/common/eff/x6fa_stlp02_c0a1.avfx", LocalizationManager.GetText("Vfx.Surround.Mark3") },
+                    { "vfx/common/eff/m7105_stlp02_c0k1.avfx", LocalizationManager.GetText("Vfx.Surround.Large") },
+                    { "vfx/common/eff/m0328sp10st0f.avfx", LocalizationManager.GetText("Vfx.Surround.RotatingSphere") },
                     
                     // 月读效果
-                    { "vfx/common/eff/m0487_w3_mark0h.avfx", "【月读】白3层" },
-                    { "vfx/common/eff/m0487_w6_mark0h.avfx", "【月读】白6层" },
-                    { "vfx/common/eff/m0487_w10_mark0h.avfx", "【月读】白10层" },
-                    { "vfx/common/eff/m0487_b3_mark0h.avfx", "【月读】黑3层" },
-                    { "vfx/common/eff/m0487_b6_mark0h.avfx", "【月读】黑6层" },
-                    { "vfx/common/eff/m0487_b10_mark0h.avfx", "【月读】黑10层" },
+                    { "vfx/common/eff/m0487_w3_mark0h.avfx", LocalizationManager.GetText("Vfx.Tsukuyomi.White3") },
+                    { "vfx/common/eff/m0487_w6_mark0h.avfx", LocalizationManager.GetText("Vfx.Tsukuyomi.White6") },
+                    { "vfx/common/eff/m0487_w10_mark0h.avfx", LocalizationManager.GetText("Vfx.Tsukuyomi.White10") },
+                    { "vfx/common/eff/m0487_b3_mark0h.avfx", LocalizationManager.GetText("Vfx.Tsukuyomi.Black3") },
+                    { "vfx/common/eff/m0487_b6_mark0h.avfx", LocalizationManager.GetText("Vfx.Tsukuyomi.Black6") },
+                    { "vfx/common/eff/m0487_b10_mark0h.avfx", LocalizationManager.GetText("Vfx.Tsukuyomi.Black10") },
                     
                     // 特殊效果
-                    { "vfx/common/eff/z6r1_b3_stlp05_c0t1.avfx", "【特殊】棱形牢笼" },
-                    { "vfx/common/eff/dk10ht_sdb0c.avfx", "【特殊】地下冒出很多手" },
-                    { "vfx/common/eff/dkst_over_p0f.avfx", "【特殊】蓝色光晕" },
-                    { "vfx/common/eff/st_akama_kega0j.avfx", "【特殊】红色漩涡" },
+                    { "vfx/common/eff/z6r1_b3_stlp05_c0t1.avfx", LocalizationManager.GetText("Vfx.Special.PrismaticCage") },
+                    { "vfx/common/eff/dk10ht_sdb0c.avfx", LocalizationManager.GetText("Vfx.Special.Hands") },
+                    { "vfx/common/eff/dkst_over_p0f.avfx", LocalizationManager.GetText("Vfx.Special.BlueAura") },
+                    { "vfx/common/eff/st_akama_kega0j.avfx", LocalizationManager.GetText("Vfx.Special.RedVortex") },
 
                     // 标记
-                    { "vfx/common/eff/n4g8_stlp_shlight1v.avfx", "【标记】圣光轰炸" },
+                    { "vfx/common/eff/n4g8_stlp_shlight1v.avfx", LocalizationManager.GetText("Vfx.Mark.HolyBombardment") },
                 }
             ),
             new IntegerMarkerConfigVariable(
                 "IconId",
-                "同步玩家图标 ID",
-                "用于世界标记的图标 ID。使用值0可禁用图标。在聊天中输入\"/xldata icons\"以访问图标浏览器。",
+                LocalizationManager.GetText("Marker.Config.IconId.Name"),
+                LocalizationManager.GetText("Marker.Config.IconId.Description"),
                 63936
             ),
             new IntegerMarkerConfigVariable(
                 "MarkerHeight",
-                "标记相对于目标的高度",
-                "指定世界标记相对于同步玩家位置的高度。值为0时，标记将放置在目标的脚下。",
+                LocalizationManager.GetText("Marker.Config.MarkerHeight.Name"),
+                LocalizationManager.GetText("Marker.Config.MarkerHeight.Description"),
                 2,
                 -10,
                 10
             ),
             new IntegerMarkerConfigVariable(
                 "FadeDistance",
-                "消失距离",
-                "标记开始消失的距离。",
+                LocalizationManager.GetText("Marker.Config.FadeDistance.Name"),
+                LocalizationManager.GetText("Marker.Config.FadeDistance.Description"),
                 10,
                 0,
                 100
             ),
             new IntegerMarkerConfigVariable(
                 "FadeAttenuation",
-                "渐隐距离",
-                "标记从开始消失到完全消失的距离。",
+                LocalizationManager.GetText("Marker.Config.FadeAttenuation.Name"),
+                LocalizationManager.GetText("Marker.Config.FadeAttenuation.Description"),
                 5,
                 0,
                 100
             ),
             new IntegerMarkerConfigVariable(
                 "MaxVisibleDistance",
-                "最大可见距离",
-                "标记的最大可见距离。设置为0表示无限制。",
+                LocalizationManager.GetText("Marker.Config.MaxVisibleDistance.Name"),
+                LocalizationManager.GetText("Marker.Config.MaxVisibleDistance.Description"),
                 0
             )
         ];

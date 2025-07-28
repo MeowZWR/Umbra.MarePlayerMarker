@@ -10,6 +10,7 @@ using Umbra.Widgets;
 using System;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Umbra.MarePlayerMarker.Localization;
+using Dalamud.Interface;
 
 namespace Umbra.MarePlayerMarker;
 
@@ -224,16 +225,37 @@ public class MarePlayerWidget(
         }
     }
 
-    private void UpdateSettingsButtons()
+        private void UpdateSettingsButtons()
     {
         var usedIds = new List<string>();
         
         foreach (var toggle in _toggleButtons)
         {
-            var button = _buttonManager.GetOrCreateButton(_settingsGroup.Label!, toggle.Id, toggle.GetLabel(), 
+            var isOn = toggle.GetValue();
+            var mainText = toggle.Id switch
+            {
+                "auto_clear_btn" => LocalizationManager.GetText("AutoClear.Label"),
+                "anonymize_btn" => LocalizationManager.GetText("Anonymize.Label"), 
+                "vfx_btn" => LocalizationManager.GetText("VfxMarker.Label"),
+                _ => toggle.Id
+            };
+            var statusText = isOn ? LocalizationManager.GetText("Status.On") : LocalizationManager.GetText("Status.Off");
+            
+            var button = _buttonManager.GetOrCreateButton(_settingsGroup.Label!, toggle.Id, mainText, 
                 () => { toggle.Toggle(); UpdateSettingsButtons(); }, toggle.SortIndex);
             
-            _buttonManager.UpdateButton(button, toggle.GetLabel(), closeOnClick: false);
+            // 设置图标
+            var icon = toggle.Id switch
+            {
+                "auto_clear_btn" => FontAwesomeIcon.Broom,
+                "anonymize_btn" => FontAwesomeIcon.EyeSlash,
+                "vfx_btn" => FontAwesomeIcon.Magic,
+                _ => FontAwesomeIcon.Cog
+            };
+            
+            _buttonManager.UpdateButton(button, mainText, closeOnClick: false, altText: statusText);
+            button.Icon = icon;
+            
             _settingsGroup.Add(button);
             usedIds.Add(toggle.Id);
         }
@@ -287,9 +309,12 @@ public class MarePlayerWidget(
                         _targetManager.Target = info.Player;
                 }, sortIdx++);
             
+            var playerIcon = info.IsLocallyVisible ? FontAwesomeIcon.User : FontAwesomeIcon.UserSlash;
+            
             _buttonManager.UpdateButton(button, info.Name, 
                 isDisabled: !info.IsLocallyVisible || info.Distance > 50,
                 altText: distText, closeOnClick: true);
+            button.Icon = playerIcon;
             
             _playerGroup.Add(button);
             usedIds.Add(id);

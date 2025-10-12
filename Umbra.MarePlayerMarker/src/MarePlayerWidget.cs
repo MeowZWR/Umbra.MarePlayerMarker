@@ -3,7 +3,6 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Plugin.Services;
 using Umbra.Common;
 using Umbra.Game;
 using Umbra.Widgets;
@@ -18,7 +17,7 @@ public class MenuButtonManager
 {
     private readonly Dictionary<string, Dictionary<string, MenuPopup.Button>> _menuItems = [];
     
-    public void EnsureGroupExists(string groupName) 
+    private void EnsureGroupExists(string groupName) 
     {
         if (!_menuItems.ContainsKey(groupName)) 
             _menuItems[groupName] = [];
@@ -67,25 +66,14 @@ public class MenuButtonManager
     }
 }
 
-public class ToggleButton
+public class ToggleButton(string id, string onText, string offText, Func<bool> getValue, Action<bool> setValue, int sortIndex = 0)
 {
-    public string Id { get; }
-    public string OnText { get; }
-    public string OffText { get; }
-    public int SortIndex { get; }
-    public Func<bool> GetValue { get; }
-    public Action<bool> SetValue { get; }
-    
-    public ToggleButton(string id, string onText, string offText, Func<bool> getValue, Action<bool> setValue, int sortIndex = 0)
-    {
-        Id = id;
-        OnText = onText;
-        OffText = offText;
-        GetValue = getValue;
-        SetValue = setValue;
-        SortIndex = sortIndex;
-    }
-    
+    public string Id { get; } = id;
+    private string OnText { get; }= onText;
+    private string OffText { get; }= offText;
+    public int SortIndex { get; } = sortIndex;
+    public Func<bool> GetValue { get; } = getValue;
+    private Action<bool> SetValue { get; } = setValue;
     public string GetLabel() => GetValue() ? OnText : OffText;
     public void Toggle() => SetValue(!GetValue());
 }
@@ -113,6 +101,8 @@ public class MarePlayerWidget(
     private readonly MenuPopup.Group _settingsGroup = new(LocalizationManager.GetText("ComponentSettings"));
     private readonly MenuPopup.Group _playerGroup = new(LocalizationManager.GetText("SyncPlayers"));
     
+    private readonly IChatSender _chatSender = Framework.Service<IChatSender>();
+    
     private readonly MarePlayerRepository _repository = Framework.Service<MarePlayerRepository>();
     private readonly MarePlayerMarker _marker = Framework.Service<MarePlayerMarker>();
     private readonly IPlayer _player = Framework.Service<IPlayer>();
@@ -129,17 +119,24 @@ public class MarePlayerWidget(
         _toggleButtons = [
             new("auto_clear_btn", LocalizationManager.GetText("AutoClear.On"), LocalizationManager.GetText("AutoClear.Off"), 
                 () => GetConfigValue<bool>("AutoClearInvisible"),
-                val => SetConfigValue("AutoClearInvisible", val), 0),
+                val => SetConfigValue("AutoClearInvisible", val), sortIndex: 0),
             new("anonymize_btn", LocalizationManager.GetText("Anonymize.On"), LocalizationManager.GetText("Anonymize.Off"),
                 () => _marker.GetConfigValue<bool>("AnonymizeName"),
-                val => _marker.SetConfigValue("AnonymizeName", val), 1),
+                val => _marker.SetConfigValue("AnonymizeName", val), sortIndex: 1),
             new("vfx_btn", LocalizationManager.GetText("VfxMarker.On"), LocalizationManager.GetText("VfxMarker.Off"),
                 () => !string.IsNullOrEmpty(_marker.GetConfigValue<string>("VfxId")),
-                val => ToggleVfx(val), 2)
+                ToggleVfx, sortIndex: 2)
         ];
         
         Popup.Add(_settingsGroup);
         Popup.Add(_playerGroup);
+        
+        Node.OnRightClick += _ => SendMareCommand();
+    }
+    
+    private void SendMareCommand()
+    {
+        _chatSender.Send("/mare");
     }
 
     protected override void OnDraw()

@@ -26,7 +26,7 @@
     <PropertyGroup>
         <Authors>MeowZ</Authors>
         <Company>MeowZ</Company>
-        <Version>1.0.5</Version>
+        <Version>9.9.9</Version>
         <ProductName>Mare同步玩家标记</ProductName>
         <Description>追踪附近与你处于配对状态的Mare玩家。</Description>
         <Copyright>(C)2025</Copyright>

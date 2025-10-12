@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/12.0.2">
+<Project Sdk="Dalamud.NET.Sdk/13.0.0">
     <PropertyGroup>
         <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
         <Configurations>Release;Debug1</Configurations>
@@ -26,7 +26,7 @@
     <PropertyGroup>
         <Authors>MeowZ</Authors>
         <Company>MeowZ</Company>
-        <Version>1.0.5</Version>
+        <Version>1.0.6</Version>
         <ProductName>Mare Player Marker</ProductName>
         <Description>Adds world markers for players synced via Mare to easily find mod-sharing companions.</Description>
         <Copyright>(C)2025</Copyright>

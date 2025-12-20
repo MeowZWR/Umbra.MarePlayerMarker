@@ -16,7 +16,11 @@ internal sealed class MareIpcService : IDisposable
     private readonly IObjectTable _objectTable;
     private ICallGateSubscriber<List<nint>>? _getHandledAddresses;
     private ICallGateSubscriber<string, string, string, object?>? _applyStatusesToPairRequest;
-    private bool _isInitialized;
+	private bool _isInitialized;
+	private DateTime _nextInitAttemptUtc = DateTime.MinValue;
+	private DateTime _lastWarnLogTime = DateTime.MinValue;
+	private readonly TimeSpan _warnLogInterval = TimeSpan.FromSeconds(5);
+	private readonly TimeSpan _initRetryInterval = TimeSpan.FromSeconds(5);
 
     public MareIpcService(
         IPluginLog logger,
@@ -30,20 +34,43 @@ internal sealed class MareIpcService : IDisposable
         InitializeIpc();
     }
 
-    private void InitializeIpc()
-    {
-        try {
-            var pluginInterface = Framework.DalamudPlugin;
-            _getHandledAddresses = pluginInterface.GetIpcSubscriber<List<nint>>("MareSynchronos.GetHandledAddresses");
-            _applyStatusesToPairRequest = pluginInterface.GetIpcSubscriber<string, string, string, object?>("MareSynchronos.ApplyStatusesToMarePlayers");
-            _isInitialized = true;
-            _logger.Information("Mare IPC subscribers initialized successfully");
-        }
-        catch (Exception ex) {
-            _logger.Warning(ex, "Failed to initialize Mare IPC subscribers, will retry later");
-            _isInitialized = false;
-        }
-    }
+	private void InitializeIpc()
+	{
+		var now = DateTime.UtcNow;
+		if (now < _nextInitAttemptUtc) return;
+
+		try {
+			var pluginInterface = Framework.DalamudPlugin;
+			_getHandledAddresses = pluginInterface.GetIpcSubscriber<List<nint>>("MareSynchronos.GetHandledAddresses");
+			_applyStatusesToPairRequest = pluginInterface.GetIpcSubscriber<string, string, string, object?>("MareSynchronos.ApplyStatusesToMarePlayers");
+			_isInitialized = true;
+			_nextInitAttemptUtc = DateTime.MinValue;
+			_logger.Information("Mare IPC subscribers initialized successfully");
+		}
+		catch (Exception ex) {
+			_isInitialized = false;
+			_nextInitAttemptUtc = DateTime.UtcNow + _initRetryInterval;
+			LogWarningThrottled(ex, "Failed to initialize Mare IPC subscribers, will retry later");
+		}
+	}
+
+	private void LogWarningThrottled(string message)
+	{
+		var now = DateTime.UtcNow;
+		if ((now - _lastWarnLogTime) >= _warnLogInterval) {
+			_lastWarnLogTime = now;
+			_logger.Warning(message);
+		}
+	}
+
+	private void LogWarningThrottled(Exception ex, string message)
+	{
+		var now = DateTime.UtcNow;
+		if ((now - _lastWarnLogTime) >= _warnLogInterval) {
+			_lastWarnLogTime = now;
+			_logger.Warning(ex, message);
+		}
+	}
 
     public bool IsEnabled => _isInitialized && _getHandledAddresses != null;
 
@@ -75,11 +102,12 @@ internal sealed class MareIpcService : IDisposable
 
             return result;
         }
-        catch (Dalamud.Plugin.Ipc.Exceptions.IpcNotReadyError) {
-            _logger.Warning("Mare IPC is not ready yet, will retry later");
-            _isInitialized = false;
-            return [];
-        }
+		catch (Dalamud.Plugin.Ipc.Exceptions.IpcNotReadyError) {
+			_isInitialized = false;
+			_nextInitAttemptUtc = DateTime.UtcNow + _initRetryInterval;
+			LogWarningThrottled("Mare IPC is not ready yet, will retry later");
+			return [];
+		}
         catch (Exception ex) {
             _logger.Error(ex, "Failed to get synced players from Mare");
             return [];
@@ -107,11 +135,12 @@ internal sealed class MareIpcService : IDisposable
             var handledAddresses = _getHandledAddresses!.InvokeFunc();
             return handledAddresses.Contains((nint)player.Address);
         }
-        catch (Dalamud.Plugin.Ipc.Exceptions.IpcNotReadyError) {
-            _logger.Warning("Mare IPC is not ready yet, will retry later");
-            _isInitialized = false;
-            return false;
-        }
+		catch (Dalamud.Plugin.Ipc.Exceptions.IpcNotReadyError) {
+			_isInitialized = false;
+			_nextInitAttemptUtc = DateTime.UtcNow + _initRetryInterval;
+			LogWarningThrottled("Mare IPC is not ready yet, will retry later");
+			return false;
+		}
         catch (Exception ex) {
             _logger.Error(ex, "Failed to check if player is synced with Mare");
             return false;

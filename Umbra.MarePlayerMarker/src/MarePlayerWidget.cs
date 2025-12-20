@@ -10,6 +10,7 @@ using System;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Umbra.MarePlayerMarker.Localization;
 using Dalamud.Interface;
+using Dalamud.Plugin.Services;
 
 namespace Umbra.MarePlayerMarker;
 

@@ -25,12 +25,12 @@ jobs:
 
       - name: Download Dalamud Latest
         run: |
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/ottercorp/dalamud-distrib/refs/heads/main/stg/latest.zip -OutFile latest.zip
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/stg/latest.zip -OutFile latest.zip
           Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\addon\Hooks\dev"
 
       - name: Download Umbra Latest
         run: |
-          Invoke-WebRequest -Uri https://github.com/ottercorp/PluginDistD17/raw/refs/heads/main/stable/Umbra/latest.zip -OutFile latest.zip
+          Invoke-WebRequest -Uri https://github.com/goatcorp/PluginDistD17/raw/refs/heads/main/stable/Umbra/latest.zip -OutFile latest.zip
           Expand-Archive -Force latest.zip "$env:AppData\XIVLauncher\installedPlugins\Umbra\dist"
 
       - name: Restore solution

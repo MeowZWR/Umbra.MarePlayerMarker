@@ -12,7 +12,6 @@ namespace Umbra.MarePlayerMarker;
 internal sealed class MareIpcService : IDisposable
 {
     private readonly IPluginLog _logger;
-    private readonly IClientState _clientState;
     private readonly IObjectTable _objectTable;
     private ICallGateSubscriber<List<nint>>? _getHandledAddresses;
     private ICallGateSubscriber<string, string, string, object?>? _applyStatusesToPairRequest;
@@ -24,12 +23,10 @@ internal sealed class MareIpcService : IDisposable
 
     public MareIpcService(
         IPluginLog logger,
-        IClientState clientState,
         IObjectTable objectTable
     )
     {
         _logger = logger;
-        _clientState = clientState;
         _objectTable = objectTable;
         InitializeIpc();
     }
@@ -86,7 +83,7 @@ internal sealed class MareIpcService : IDisposable
         try {
             var handledAddresses = _getHandledAddresses!.InvokeFunc();
             var result = new List<IGameObject>();
-            var localPlayer = _clientState.LocalPlayer;
+            var localPlayer = _objectTable.LocalPlayer;
 
             foreach (var obj in _objectTable) {
                 if (obj is not IPlayerCharacter player) continue;
@@ -127,7 +124,7 @@ internal sealed class MareIpcService : IDisposable
             var obj = _objectTable.SearchById(objectId);
             if (obj is not IPlayerCharacter player) return false;
             
-            var localPlayer = _clientState.LocalPlayer;
+            var localPlayer = _objectTable.LocalPlayer;
             if (localPlayer != null && player.GameObjectId == localPlayer.GameObjectId) {
                 return false;
             }

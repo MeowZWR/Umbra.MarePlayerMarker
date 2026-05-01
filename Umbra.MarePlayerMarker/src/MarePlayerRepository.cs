@@ -10,7 +10,7 @@ namespace Umbra.MarePlayerMarker;
 
 [Service]
 internal sealed class MarePlayerRepository(
-    IClientState clientState,
+    IObjectTable objectTable,
     IPlayer      player,
     MareIpcService mareIpc
 ) : IDisposable
@@ -27,7 +27,7 @@ internal sealed class MarePlayerRepository(
     [OnTick]
     private void OnTick()
     {
-        if (null == clientState.LocalPlayer) return;
+        if (null == objectTable.LocalPlayer) return;
 
         lock (_syncedPlayers) {
             if (player.IsBetweenAreas || player.IsInCutscene) {

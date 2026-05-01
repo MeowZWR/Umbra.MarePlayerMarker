@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Umbra.Common;
 using Umbra.Game;
@@ -196,7 +197,7 @@ public class MarePlayerWidget(
     }
 
     private static bool IsPlayerVisible(IGameObject obj) =>
-        obj.IsValid() && obj.ObjectKind == ObjectKind.Player && 
+        obj.IsValid() && obj is IPlayerCharacter && 
         !string.IsNullOrEmpty(obj.Name?.TextValue) && obj.Position != Vector3.Zero;
 
     private void CleanupInvisiblePlayers()

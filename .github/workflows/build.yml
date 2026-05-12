@@ -1,7 +1,7 @@
 name: Publish
 on:
   push:
-    tags: ["*-cn"]
+    tags: ["*-cn", "*-ls"]
 
 env:
   SOLUTION_NAME: Umbra.MarePlayerMarker
@@ -13,9 +13,25 @@ jobs:
       contents: write
     runs-on: windows-latest
     steps:
+      - name: Determine build variant
+        id: variant
+        shell: bash
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [[ "$TAG" == *-ls ]]; then
+            echo "ref=Lightless-unicode-support" >> "$GITHUB_OUTPUT"
+            echo "version=${TAG%-ls}" >> "$GITHUB_OUTPUT"
+            echo "body=This is the Lightless Sync version." >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "version=${TAG%-cn}" >> "$GITHUB_OUTPUT"
+            echo "body=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ steps.variant.outputs.ref }}
           submodules: true
 
       - name: Set up .NET
@@ -38,7 +54,7 @@ jobs:
 
       - name: Build solution
         run: |
-          $ver = '${{ github.ref_name }}' -replace '-cn'
+          $ver = '${{ steps.variant.outputs.version }}'
           dotnet restore -r win ${{ env.SOLUTION_NAME }}.sln
           dotnet build --configuration Release --nologo -p:Version=$ver -p:FileVersion=$ver -p:AssemblyVersion=$ver
 
@@ -48,4 +64,5 @@ jobs:
       - name: Publish Plugin
         uses: softprops/action-gh-release@v2
         with:
+          body: ${{ steps.variant.outputs.body }}
           files: ${{env.RELEASE_DIR}}/${{env.SOLUTION_NAME}}.zip

@@ -89,7 +89,7 @@ internal class CachedPlayerInfo
     public float Distance { get; set; }
 }
 
-[ToolbarWidget("Umbra_MarePlayerWidget", "Mare同步玩家组件", "提供一个清单显示通过Mare与你同步的玩家。")]
+[ToolbarWidget("Umbra_MarePlayerWidget", "Lightless同步玩家组件", "提供一个清单显示通过Lightless与你同步的玩家。")]
 public class MarePlayerWidget(
     WidgetInfo info,
     string? guid = null,
@@ -133,12 +133,12 @@ public class MarePlayerWidget(
         Popup.Add(_settingsGroup);
         Popup.Add(_playerGroup);
         
-        Node.OnRightClick += _ => SendMareCommand();
+        Node.OnRightClick += _ => SendLightlessCommand();
     }
     
-    private void SendMareCommand()
+    private void SendLightlessCommand()
     {
-        _chatSender.Send("/mare");
+        _chatSender.Send("/lightless");
     }
 
     protected override void OnDraw()

@@ -35,7 +35,7 @@ internal sealed class MarePlayerRepository(
                 return;
             }
 
-            // 从Mare IPC获取同步玩家列表
+            // 从Lightless IPC获取同步玩家列表
             var players = mareIpc.GetSyncedPlayers();
             _syncedPlayers.Clear();
             

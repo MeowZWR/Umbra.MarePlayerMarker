@@ -11,10 +11,11 @@ namespace Umbra.MarePlayerMarker;
 [Service]
 internal sealed class MareIpcService : IDisposable
 {
+    private const string LightlessHandledAddressesIpc = "LightlessSync.GetHandledAddresses";
+
     private readonly IPluginLog _logger;
     private readonly IObjectTable _objectTable;
     private ICallGateSubscriber<List<nint>>? _getHandledAddresses;
-    private ICallGateSubscriber<string, string, string, object?>? _applyStatusesToPairRequest;
 	private bool _isInitialized;
 	private DateTime _nextInitAttemptUtc = DateTime.MinValue;
 	private DateTime _lastWarnLogTime = DateTime.MinValue;
@@ -38,16 +39,15 @@ internal sealed class MareIpcService : IDisposable
 
 		try {
 			var pluginInterface = Framework.DalamudPlugin;
-			_getHandledAddresses = pluginInterface.GetIpcSubscriber<List<nint>>("MareSynchronos.GetHandledAddresses");
-			_applyStatusesToPairRequest = pluginInterface.GetIpcSubscriber<string, string, string, object?>("MareSynchronos.ApplyStatusesToMarePlayers");
+			_getHandledAddresses = pluginInterface.GetIpcSubscriber<List<nint>>(LightlessHandledAddressesIpc);
 			_isInitialized = true;
 			_nextInitAttemptUtc = DateTime.MinValue;
-			_logger.Information("Mare IPC subscribers initialized successfully");
+			_logger.Information("Lightless IPC subscribers initialized successfully");
 		}
 		catch (Exception ex) {
 			_isInitialized = false;
 			_nextInitAttemptUtc = DateTime.UtcNow + _initRetryInterval;
-			LogWarningThrottled(ex, "Failed to initialize Mare IPC subscribers, will retry later");
+			LogWarningThrottled(ex, "Failed to initialize Lightless IPC subscribers, will retry later");
 		}
 	}
 
@@ -102,11 +102,11 @@ internal sealed class MareIpcService : IDisposable
 		catch (Dalamud.Plugin.Ipc.Exceptions.IpcNotReadyError) {
 			_isInitialized = false;
 			_nextInitAttemptUtc = DateTime.UtcNow + _initRetryInterval;
-			LogWarningThrottled("Mare IPC is not ready yet, will retry later");
+			LogWarningThrottled("Lightless IPC is not ready yet, will retry later");
 			return [];
 		}
         catch (Exception ex) {
-            _logger.Error(ex, "Failed to get synced players from Mare");
+            _logger.Error(ex, "Failed to get synced players from Lightless");
             return [];
         }
     }
@@ -135,11 +135,11 @@ internal sealed class MareIpcService : IDisposable
 		catch (Dalamud.Plugin.Ipc.Exceptions.IpcNotReadyError) {
 			_isInitialized = false;
 			_nextInitAttemptUtc = DateTime.UtcNow + _initRetryInterval;
-			LogWarningThrottled("Mare IPC is not ready yet, will retry later");
+			LogWarningThrottled("Lightless IPC is not ready yet, will retry later");
 			return false;
 		}
         catch (Exception ex) {
-            _logger.Error(ex, "Failed to check if player is synced with Mare");
+            _logger.Error(ex, "Failed to check if player is synced with Lightless");
             return false;
         }
     }

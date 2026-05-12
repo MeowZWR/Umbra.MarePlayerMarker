@@ -27,8 +27,8 @@
         <Authors>MeowZ</Authors>
         <Company>MeowZ</Company>
         <Version>9.9.9</Version>
-        <ProductName>Mare同步玩家标记</ProductName>
-        <Description>追踪附近与你处于配对状态的Mare玩家。</Description>
+        <ProductName>Lightless同步玩家标记</ProductName>
+        <Description>追踪附近与你处于配对状态的Lightless玩家。</Description>
         <Copyright>(C)2025</Copyright>
         <PackageProjectUrl>https://github.com/una-xiv/umbra</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
